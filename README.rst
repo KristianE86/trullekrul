@@ -1,7 +1,7 @@
 # trullekrul
 MATLAB/Octave scripts for anisotropic mesh adaptation, topology optimization and finite element methods
 
-Topology optimization and anisotropic mesh adaptation in 2D and 3D:
+Topology optimization and anisotropic mesh adaptation for optimal heat conduction in 2D and 3D:
 
 .. code:: MATLAB
 
@@ -9,7 +9,7 @@ Topology optimization and anisotropic mesh adaptation in 2D and 3D:
 
    top5000(0.4,7e-2,0.1,true,0.75,0.7,0.5,1.5,1/10,283,1e-3,pi/4,'fig9b')
 
-Topology optimization and linear elasticity in 2D and 3D:
+The same technology can be used for 2D/3D minimum compliance in linear elasticity:
 
 .. code:: MATLAB
 
