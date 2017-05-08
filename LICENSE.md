@@ -8,7 +8,7 @@ this list of conditions and the following disclaimer.
 b. Redistributions in binary form must reproduce the above copyright
 notice, this list of conditions and the following disclaimer in the
 documentation and/or other materials provided with the distribution.
-c. Neither the name of PyFR nor the names of its contributors
+c. Neither the name of trullekrul nor the names of its contributors
 may be used to endorse or promote products derived from this software
 without specific prior written permission.
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
