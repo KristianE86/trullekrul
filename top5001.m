@@ -1,3 +1,5 @@
+
+
 %Copyright (c) 2013, 2014, 2015 Imperial College London
               %2016, 2017       Technical University of Denmark
 %All rights reserved.
@@ -26,22 +28,22 @@
 %TOP5001 by Kristian Ejlebjerg Jensen 2017-05-30
 %Department of Micro- and Nanotechnology, Technical University of Denmark (DTU)
 %Ørsteds Plads, DK-2800 Kgs. Lyngby
-%top5001(nan,2e-2,0.5,0.3,false,2,1, [],1/50,400,1e-2,'3f',1.025,5,false); %2D fixed
-%top5001(7.5e2,2e-2,0.5,0.3,false,2,1, [],1/20,400,1e-2,'3a',1.025,5,false); %2D coarse
-%top5001(1.5e3,2e-2,0.5,0.3,false,2,1, [],1/20,566,1e-2,'3b',1.025,5,false); %2D medium
-%top5001(3e3  ,2e-2,0.5,0.3,false,2,1, [],1/20,800,1e-2,'3c',1.025,5,false); %2D fine
-%top5001(nan ,2e-2 ,0.2,0.3,true ,2,0.5,0.25,1/50,566,1e-3,'5f',1.025,false,2); %3D fixed
-%top5001(1e3 ,2e-2 ,0.2,0.3,true ,2,0.5,0.25,1/10,400,1e-3,'5a',1.025,5,2); %3D coarse
-%top5001(round(2e3*sqrt(2)) ,2e-2 ,0.2,0.3,true ,2,0.5,0.25,1/10,566,1e-3,'5b',1.025,5,2); %3D medium
-%top5001(8e3 ,2e-2 ,0.2,0.3,true ,2,0.5,0.25,1/10,800,1e-3,'5c',1.025,5,2); %3D fine
-%top5001(nan ,2e-2 ,0.1,0.3,2    ,2,0.5,0.25,1/50,566,1e-3,'6f',1.025,false,2); %3Da fixed
-%top5001(2e3 ,2e-2 ,0.1,0.3,2    ,2,0.5,0.25,1/10,400,1e-3,'6a',1.025,5,2); %3Da coarse
-%top5001(round(4e3*sqrt(2)) ,2e-2,0.1,0.3,2    ,2,0.5,0.25,1/10,566,1e-3,'6b',1.025,5,2); %3Da medium
-%top5001(1.6e4 ,2e-2 ,0.1,0.3,2  ,2,0.5,0.25,1/10,800,1e-3,'6c',1.025,5,2); %3Da fine
-%top5001(4e4 ,1e-3 ,0.01,0.3,2   ,2,0.5,0.25,1/10,800,1e-4,'7',1.025,5,2); %low fraction
-%top5001(3e3 ,5e-3 ,0.1,0.3,true ,2,0.5,0.25,1/10,400,1e-3,'5a',1.025,5,2); %3Db coarse
-%top5001(round(6e3*sqrt(2)) ,5e-3 ,0.1,0.3,true ,2,0.5,0.25,1/10,566,1e-3,'5b',1.025,5,2); %3Db medium
-%top5001(2.4e3 ,5e-3 ,0.1,0.3,true ,2,0.5,0.25,1/10,800,1e-3,'5c',1.025,5,2); %3Db fine
+%top5001(nan,2e-2,0.5,0.3,false,2,1, [],1/50,400,1e-2,'fig5a',1.025,5,false); %2D fixed
+%top5001(7.5e2,2e-2,0.5,0.3,false,2,1, [],1/20,400,1e-2,'fig5b',1.025,5,false); %2D coarse
+%top5001(1.5e3,2e-2,0.5,0.3,false,2,1, [],1/20,566,1e-2,'fig5c',1.025,5,false); %2D medium
+%top5001(3e3  ,2e-2,0.5,0.3,false,2,1, [],1/20,800,1e-2,'fig5d',1.025,5,false); %2D fine
+%top5001(nan ,2e-2 ,0.2,0.3,true ,2,0.5,0.25,1/50,566,1e-3,'fig9a',1.025,false,2); %3D fixed
+%top5001(1e3 ,2e-2 ,0.2,0.3,true ,2,0.5,0.25,1/10,400,1e-3,'fig7a',1.025,5,2); %3D coarse
+%top5001(round(2e3*sqrt(2)) ,2e-2 ,0.2,0.3,true ,2,0.5,0.25,1/10,566,1e-3,'fig7b',1.025,5,2); %3D medium
+%top5001(8e3 ,2e-2 ,0.2,0.3,true ,2,0.5,0.25,1/10,800,1e-3,'fig7c',1.025,5,2); %3D fine
+%top5001(nan ,2e-2 ,0.1,0.3,2    ,2,0.5,0.25,1/50,566,1e-3,'fig9b',1.025,false,2); %3Da fixed
+%top5001(2e3 ,2e-2 ,0.1,0.3,2    ,2,0.5,0.25,1/10,400,1e-3,'fig8a',1.025,5,2); %3Da coarse
+%top5001(round(4e3*sqrt(2)) ,2e-2,0.1,0.3,2    ,2,0.5,0.25,1/10,566,1e-3,'fig8b',1.025,5,2); %3Da medium
+%top5001(1.6e4 ,2e-2 ,0.1,0.3,2  ,2,0.5,0.25,1/10,800,1e-3,'fig8c',1.025,5,2); %3Da fine
+%top5001(4e4 ,1e-3 ,0.01,0.3,2   ,2,0.5,0.25,1/10,800,1e-4,'fig9c',1.025,5,2); %low fraction
+%top5001(3e3 ,5e-3 ,0.1,0.3,true ,2,0.5,0.25,1/10,400,1e-3,'fig12a',1.025,5,2); %3Db coarse
+%top5001(round(6e3*sqrt(2)) ,5e-3 ,0.1,0.3,true ,2,0.5,0.25,1/10,566,1e-3,'fig12b',1.025,5,2); %3Db medium
+%top5001(2.4e3 ,5e-3 ,0.1,0.3,true ,2,0.5,0.25,1/10,800,1e-3,'fig12c',1.025,5,2); %3Db fine
 
 function top5001(eta, Lmin, Tvol, nu, do3D, Lx, Ly, Lz, meshszI, itertotal, Emin, outnm, mvlimit, doadapt, dosym)
 %%%%% INPUT %%%%%
@@ -3350,9 +3352,9 @@ if dim==2
  X = A\reshape((xy_-xy(tri(nd2tri_,1),:))',Isumdim,1);
  s1 = X(1:2:Isumdim); s2 = X(2:2:Isumdim); s3 = 1-s1-s2;
  spike = zeros(size(s1));
- I_ = and(s1 <  s2, s1 <= s3); spike(I_) = -s1(I_); %I_ = and(s1 <= s2, s1 <= s3);
- I_ = and(s2 <= s1, s2 <  s3); spike(I_) = -s2(I_); %I_ = and(s2 <= s1, s2 <= s3);
- I_ = and(s3 <= s2, s3 <  s1); spike(I_) = -s3(I_); %I_ = and(s3 <= s2, s3 <= s1);
+ I_ = and(s1 <= s2, s1 <= s3); spike(I_) = -s1(I_); %I_ = and(s1 <  s2, s1 <= s3);
+ I_ = and(s2 <= s1, s2 <= s3); spike(I_) = -s2(I_); %I_ = and(s2 <= s1, s2 <  s3);
+ I_ = and(s3 <= s2, s3 <= s1); spike(I_) = -s3(I_); %I_ = and(s3 <= s2, s3 <  s1); 
  spikes = inf(size(nd2tri)); spikes(I) = spike;
  [tmp,Cbest] = sort(spikes,2);
  I_ = Cbest(R)==C; [Rbest,I] = sort(R(I_));
@@ -3388,10 +3390,10 @@ else %3D
  X = A\reshape((xy_-xy(tri(nd2tri_,1),:))',Isumdim,1);
  s1 = X(1:3:Isumdim); s2 = X(2:3:Isumdim); s3 = X(3:3:Isumdim); s4 = 1-s1-s2-s3;
  spike = inf(size(s1));
- I_ = and(and(s1 <= s2, s1 <  s3), s1 <  s4); spike(I_) = -s1(I_); %I_ = and(and(s1 <= s2, s1 <= s3), s1 <= s4); 
- I_ = and(and(s2 <  s1, s2 <  s3), s2 <= s4); spike(I_) = -s2(I_); %I_ = and(and(s2 <= s1, s2 <= s3), s2 <= s4); 
- I_ = and(and(s3 <= s1, s3 <= s2), s3 <  s4); spike(I_) = -s3(I_); %I_ = and(and(s3 <= s1, s3 <= s2), s3 <= s4);
- I_ = and(and(s4 <= s1, s4 <  s2), s4 <= s3); spike(I_) = -s4(I_); %I_ = and(and(s4 <= s1, s4 <= s2), s4 <= s3); 
+ I_ = and(and(s1 <= s2, s1 <= s3), s1 <= s4); spike(I_) = -s1(I_); %I_ = and(and(s1 <= s2, s1 <  s3), s1 <  s4); 
+ I_ = and(and(s2 <= s1, s2 <= s3), s2 <= s4); spike(I_) = -s2(I_); %I_ = and(and(s2 <  s1, s2 <  s3), s2 <= s4); 
+ I_ = and(and(s3 <= s1, s3 <= s2), s3 <= s4); spike(I_) = -s3(I_); %I_ = and(and(s3 <= s1, s3 <= s2), s3 <  s4);
+ I_ = and(and(s4 <= s1, s4 <= s2), s4 <= s3); spike(I_) = -s4(I_); %I_ = and(and(s4 <= s1, s4 <  s2), s4 <= s3); 
  spikes = inf(size(nd2tri)); spikes(I) = spike;
  [tmp,Cbest] = sort(spikes,2);
  I_ = Cbest(R)==C; [Rbest,I] = sort(R(I_));
