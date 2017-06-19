@@ -9,6 +9,8 @@ Topology optimization and anisotropic mesh adaptation for optimal heat conductio
 
    top5000(0.4,7e-2,0.1,true,0.75,0.7,0.5,1.5,1/10,283,1e-3,pi/4,'fig9b')
 
+See the WCSMO12 coference proceeding for a detailed description: https://drive.google.com/file/d/0B9uPpc2f4SZ5TnBjclJFaERSQWs
+
 The same technology can be used for 2D/3D minimum compliance in linear elasticity:
 
 .. code:: MATLAB
@@ -17,5 +19,5 @@ The same technology can be used for 2D/3D minimum compliance in linear elasticit
 
    top5001(4e-2,5e-3,0.1,0.3,1   , 2,0.5,0.25,1/10,400,1e-3,'fig2',1.025,5);
 
-See publications related to WCSMO12 and IMR26 for more detailed descriptions.
+There is an upcoming publication related to IMR26 with more details.
 
