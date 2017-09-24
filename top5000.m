@@ -1,3 +1,5 @@
+
+
 %Copyright (c) 2013, 2014, 2015 Imperial College London
 %              2016, 2017       Technical University of Denmark
 %All rights reserved.
@@ -8,7 +10,7 @@
 %b. Redistributions in binary form must reproduce the above copyright
 %notice, this list of conditions and the following disclaimer in the
 %documentation and/or other materials provided with the distribution.
-%c. Neither the name of PyFR nor the names of its contributors
+%c. Neither the name of trullekrul nor the names of its contributors
 %may be used to endorse or promote products derived from this software
 %without specific prior written permission.
 %THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -24,7 +26,7 @@
 %DAMAGE.
 
 
-%TOP5000 by Kristian Ejlebjerg Jensen 2017-01-30
+%TOP5000 by Kristian Ejlebjerg Jensen 2017-04-30
 %Department of Micro- and Nanotechnology, Technical University of Denmark (DTU)
 %Ørsteds Plads, DK-2800 Kgs. Lyngby
 %top5000(nan,5e-3,0.5,false,[],[],0.1,[],1/600,300,1e-3,pi/5,'fig7a',1,1.025,false)
@@ -96,7 +98,7 @@ for ii=1:itertotal
  rhof = mean(rhof(tri),2); rhof(rhof<0) = 0.;
  sclr(ii,8) = now();
  T = fem_heat(tri,xy,bndmesh,rhof,kmin,simpP,bcs,options,X);
- sclr(ii,1) = sum((kmin+(1.-kmin)*rhof.^simpP).*fem_sq_grad(tri,xy,T,X).*dem)/(6+18*do3D); %obj
+ sclr(ii,1) = sum((kmin+(1.-kmin)*rhof.^simpP).*fem_sq_grad(tri,xy,T,X).*dem)/(2+4*do3D); %obj
  sclr(ii,9) = now();
  dOdrhof = -simpP*(1.-kmin)*rhof.^(simpP-1).*fem_sq_grad(tri,xy,T,X);
  sclr(ii,10) = now();
@@ -105,7 +107,7 @@ for ii=1:itertotal
  %dOdrho = full(sparse(tri,ones(size(tri)),repmat(dOdrho.*dem/(2+4*do3D),1,size(tri,2)),size(xy,1),1))./demN;
  sclr(ii,11) = now();
  %adapt
- if ii < itertotal-frzz20*20 && doadapt && mod(ii,doadapt) == 0
+ if ii < itertotal-frzz20*20 && doadapt && mod(ii,doadapt) == 0 && not(isnan(eta))
  sclr(ii,12) = now();
  Nmetric = metric_pnorm(tri,xy,dOdrho,eta,2,options,X); 
  sclr(ii,13) = now();
@@ -140,7 +142,7 @@ for ii=1:itertotal
   if ii ~= 10
    system(['rm ' outnm '/sclr.mat']);
   end;
-  save([outnm '/sclr.mat'],'sclr','-ascii');
+  save([outnm '/sclr.mat'],'sclr','-ascii','-double');
  end;
  %update simpP
  if simpP < 3.+do3D
@@ -272,7 +274,7 @@ ND = 4*sum((mean(rho_,2)-sum(rho_(:,[1 2 3 1 2 3]).*rho_(:,[1 2 3 2 3 1])/6,2)).
 else %3D
 ND = 4*sum((mean(rho_,2)-sum(rho_(:,[1 2 3 4 1 2 3 4 1 3]).*rho_(:,[1 2 3 4 2 3 4 1 2 4]),2)/10).*dem)/sum(dem);
 end;
-	
+
 
 function [tri,xy] = export_stl(tri,xy,c,cutv,flname)
 %%% exports the volume satisfying cutv < c
@@ -724,6 +726,9 @@ elseif options.prag_adapt
     [tri,xy,bndmesh,Nmetric,triQ,bks]  = pragadapt(tri,xy,Nmetric,bndmesh,triQ,bks,geomfunc,options);
 else
 [tri,xy,bndmesh,Nmetric,triQ,bks]  = newadapt(tri,xy,Nmetric,bndmesh,triQ,bks,bks,geomfunc,options);
+end;
+if isfield(bndmesh,'triID')
+ bndmesh = bndmesh_exterior(bndmesh,tri);
 end;
 if isfield(bndmesh,'xyold');
 	[Nmetric_,triO,s,Igood] = elem_interp(bndmesh.triold,bndmesh.xyold,bndmesh.trinew,xy,options,Nmetric_);
@@ -1337,6 +1342,285 @@ ocircles(R(I1)+(Cc(I1)-1)*nbad*2) = circles(R(I1)+(Cc(I1)-1)*nbad);
 ocircles(R(I2)+(Cl(I2)-1)*nbad*2+nbad) = circles(R(I2)+(Cc(I2)-1)*nbad);
 ocircles(nbad+1:end,end) = circles(:,1);
 %ocircles(nbad+1:end,:) = fix_circles(ocircles(nbad+1:end,:));
+
+function [circles,badnds,badIDs] = split_2D_circles(circles,badnds,allIDs,bndnds2_,bndmesh,nd2bndedg,nd2tri,tri)
+badnds2 = badnds(bndnds2_(badnds));
+nbad = numel(badnds2);
+circles_ = circles(bndnds2_(badnds),:);
+ngh1 = bndmesh.edg(nd2bndedg(badnds2,1),:)';
+ngh2 = bndmesh.edg(nd2bndedg(badnds2,2),:)';
+ngh1 = ngh1(ngh1~=repmat(badnds2',2,1));
+ngh2 = ngh2(ngh2~=repmat(badnds2',2,1));
+[shft1,R] = find(circles_' == repmat(ngh1',size(circles,2),1));
+[shft2,R] = find(circles_' == repmat(ngh2',size(circles,2),1));
+NN = sum(circles_~=0,2);
+if any(shft1~=1) %shft
+[C,R] = find(circles_'); C_ = C-shft1(R)+1;  C1m = C_ < 1;
+shft2 = shft2-shft1+1; C2m = shft2 < 1;
+C_(C1m) = NN(R(C1m)) + C_(C1m);
+shft2(C2m) = NN(C2m) + shft2(C2m);
+circles_(R+(C_-1)*nbad) = circles_(R+(C-1)*nbad);
+else
+[C_,R] = find(circles_');
+end;
+ocircles = zeros(2*nbad,size(circles,2));
+I1 = C_ <= shft2(R);
+I2 = C_ >= shft2(R);
+ocircles(R(I1)+(C_(I1)-1)*2*nbad) = circles_(R(I1)+(C_(I1)-1)*nbad);
+ocircles(R(I2)+(C_(I2)-shft2(R(I2)))*2*nbad+nbad) = circles_(R(I2)+(C_(I2)-1)*nbad);
+Rlast = (nbad+1:2*nbad)';
+ocircles(Rlast+(NN-shft2+1)*2*nbad) = circles_(:,1);
+%determine IDs
+triC = sort([repmat(badnds2,2,1) ocircles(:,1:2)],2);
+%tri1 = zeros(nbad,size(nd2tri,2)); tri2 = tri1; tri3 = tri1;
+%tri1(nd2tri_~=0) = tri(nd2tri_(ndtri_~=0),1);
+%tri2(nd2tri_~=0) = tri(nd2tri_(ndtri_~=0),2);
+%tri3(nd2tri_~=0) = tri(nd2tri_(ndtri_~=0),3);
+nd2tri_ = nd2tri(badnds2,:)';
+tri_ = zeros(3,size(nd2tri,2),nbad);
+tri_(:,nd2tri_~=0) = tri(nd2tri_(nd2tri_~=0),:)';
+tri_ = sort(tri_);
+tri1 = reshape(squeeze(tri_(1,:,:)),size(nd2tri,2),nbad); %reshape active for nbad==1
+tri2 = reshape(squeeze(tri_(2,:,:)),size(nd2tri,2),nbad);
+tri3 = reshape(squeeze(tri_(3,:,:)),size(nd2tri,2),nbad);
+[C1,R] = find(and(and(tri1 == repmat(triC(1:nbad,1)',size(nd2tri,2),1),tri2 == repmat(triC(1:nbad,2)',size(nd2tri,2),1)),tri3 == repmat(triC(1:nbad,3)',size(nd2tri,2),1)));
+[C2,R] = find(and(and(tri1 == repmat(triC(nbad+1:end,1)',size(nd2tri,2),1),tri2 == repmat(triC(nbad+1:end,2)',size(nd2tri,2),1)),tri3 == repmat(triC(nbad+1:end,3)',size(nd2tri,2),1)));
+triF = [nd2tri_(C1+(R-1)*size(nd2tri,2)); nd2tri_(C2+(R-1)*size(nd2tri,2))];
+newIDs = bndmesh.triID(triF);
+%write
+circles(bndnds2_(badnds),:) = ocircles(1:nbad,:);
+circles = [circles; ocircles(nbad+1:end,:)];
+badIDs = allIDs(badnds);
+badIDs(bndnds2_(badnds)) = newIDs(1:nbad);
+badIDs = [badIDs; newIDs(nbad+1:end)];
+badnds = [badnds; badnds2];
+
+function badbadnds = kill_self_intersecting(spheres, xy, badnds, newedg, newedgN)
+real2smp = zeros(max(badnds),1); real2smp(badnds) = 1:numel(badnds);
+NN = sum(squeeze(spheres(1,:,:))~=0)';
+[newedgN,I] = sort(newedgN); newedg = newedg(I,:);
+if numel(newedgN) ~= 1
+  de = [newedgN(1:end-1)~=newedgN(2:end); true];
+else
+  de = true;
+end;
+%real2smpe = false(size(real2smp)); real2smpe(newedgN(de)) = true;
+NNe = diff([0; find(de)]); cNNe = sum(NNe);
+
+%spheres_ = spheres(:,:,real2smp(newedgN(de)));
+%[C_,R_] = find(squeeze(spheres_(1,:,:))~=0); badnds_ = badnds(real2smpe(badnds)); badnds_ = badnds_(R_);
+%spheres_ = spheres_(:,C_+(R_-1)*size(spheres_,2))';
+
+NN_ = NN(real2smp(newedgN(de))); %cNN = sum(NN_);
+%probs = NNe.*NN_; Nprobs = sum(probs);
+
+CE = repmat((1:max(NN_))',1,cNNe); RE = repmat(1:cNNe,max(NN_),1);
+RE = RE(CE <= repmat((NN(real2smp(newedgN)))',max(NN_),1));
+CE = CE(CE <= repmat((NN(real2smp(newedgN)))',max(NN_),1));
+
+R = CE+(real2smp(newedgN(RE))-1)*size(spheres,2);
+edg = newedg(RE,:);  fac = spheres(:,R)';
+nItch = not(any([repmat(edg(:,1),1,3) repmat(edg(:,2),1,3)] == repmat(fac,1,2),2)); Nprobs = sum(nItch);
+edg = edg(nItch,:); fac = fac(nItch,:); RE = RE(nItch);  %removing touching ends
+b = reshape((xy(edg(:,1),:)-xy(fac(:,1),:))',Nprobs*3,1);
+A1 = xy(edg(:,1),:)-xy(edg(:,2),:); A2 = xy(fac(:,2),:)-xy(fac(:,1),:); A3 = xy(fac(:,3),:)-xy(fac(:,1),:);
+A123 = reshape([A1'; A2'; A3'],Nprobs*9,1);
+C = reshape(repmat(1:3*Nprobs,3,1),Nprobs*9,1);
+R = reshape(repmat(reshape((1:3*Nprobs),3,Nprobs),3,1),Nprobs*9,1);
+A = sparse(R,C,A123,Nprobs*3,Nprobs*3);
+X = A\b; X = reshape(X,3,Nprobs)';
+Ibad = all([0. <= X(:,1), X(:,1) <= 1., 0 <= X(:,2), 0 <= X(:,3), X(:,2)+X(:,3) <= 1.],2);
+badbadnds = newedgN(RE(Ibad));
+
+
+function badIDs = get_badIDs3D(spheres_,tri,badnds,bndmesh,nd2tri_)
+nbad = numel(badnds);
+triC = sort([badnds'; squeeze(spheres_)])';
+tri_ = zeros([4 size(nd2tri_,1) nbad]);
+tri_(:,nd2tri_~=0) = tri(nd2tri_(nd2tri_~=0),:)';
+tri_ = sort(tri_);
+tri1 = reshape(squeeze(tri_(1,:,:)),size(nd2tri_,1),nbad); %reshape active for nbad==1
+tri2 = reshape(squeeze(tri_(2,:,:)),size(nd2tri_,1),nbad);
+tri3 = reshape(squeeze(tri_(3,:,:)),size(nd2tri_,1),nbad);
+tri4 = reshape(squeeze(tri_(4,:,:)),size(nd2tri_,1),nbad);
+[C,R] = find(and(and(tri1 == repmat(triC(:,1)',size(nd2tri_,1),1),tri2 == repmat(triC(:,2)',size(nd2tri_,1),1)),and(tri3 == repmat(triC(:,3)',size(nd2tri_,1),1),tri4 == repmat(triC(:,4)',size(nd2tri_,1),1))));
+triF = nd2tri_(C+(R-1)*size(nd2tri_,1));
+badIDs = bndmesh.triID(triF);
+
+function [spheres_,newfacs_,newIDs_,newtriN2_,badnds,badbadnds] = split_spheres(spheres,tri,badnds,xy,Nmetric,badnds_fac2,bndndsI_,bndnds2_,bndmesh,nd2bndfac,nd2tri_,options)
+%save for_debug3D.mat;
+nbad = numel(badnds_fac2);
+badnds_fac2_ = bndndsI_(badnds);
+spheres_ = spheres(:,:,badnds_fac2_);
+NN = squeeze(sum(spheres_(1,:,:)~=0,2));
+[C,R] = find(squeeze(spheres_(1,:,:)));
+spheres4 = zeros(4,numel(R));
+if nbad ~= 1
+spheres4(1:3,:) = spheres_(1:3,C+(R-1)*size(spheres,2));
+else
+spheres4(1:3,:) = spheres_(1:3,C+(R-1));
+R = C; C=(1:numel(R))';
+end;
+spheres4(4,:) = badnds_fac2(R);
+
+triC = sort(spheres4);
+tri_ = zeros([4 size(nd2tri_,1) nbad]);
+tri_(:,nd2tri_~=0) = tri(nd2tri_(nd2tri_~=0),:)';
+tri_ = sort(tri_);
+tri1 = reshape(squeeze(tri_(1,:,R)),size(nd2tri_,1),numel(R)); %reshape active for nbad==1
+tri2 = reshape(squeeze(tri_(2,:,R)),size(nd2tri_,1),numel(R));
+tri3 = reshape(squeeze(tri_(3,:,R)),size(nd2tri_,1),numel(R));
+tri4 = reshape(squeeze(tri_(4,:,R)),size(nd2tri_,1),numel(R));
+[C_,R_] = find(and(and(tri1 == repmat(triC(1,:),size(nd2tri_,1),1),tri2 == repmat(triC(2,:),size(nd2tri_,1),1)),and(tri3 == repmat(triC(3,:),size(nd2tri_,1),1),tri4 == repmat(triC(4,:),size(nd2tri_,1),1))));
+R = reshape(R(R_),numel(R),1); C = C(R_); CR = C+(R-1)*size(spheres,2);
+triF = nd2tri_(C_+(R-1)*size(nd2tri_,1));
+sphrID = nan(size(spheres_,2),nbad);
+sphrID(CR) = bndmesh.triID(triF);
+[sphrID,I] = sort(sphrID);
+nNaN = not(isnan(sphrID));
+spheres_(:,nNaN) = spheres_(:,I(CR)+(R-1)*size(spheres,2));
+[C,R] = find(and([false(1,nbad); sphrID(1:end-1,:)~=sphrID(2:end,:)],nNaN));
+spheres2 = zeros(3,size(spheres_,2),nbad+numel(R));
+badnds2 = zeros(nbad+numel(R),1);
+if nbad ~= 1
+CR = [ones(nbad,1) rpval2M(R,C) zeros(nbad,1)];
+else
+CR = [ones(nbad,1) C zeros(nbad,1)];
+end;
+NN2 = sum(CR~=0,2);
+CR((1:nbad)'+NN2*nbad) = NN+1;
+ii=1; maxN = max(NN);
+Call = repmat((1:maxN)',1,nbad);
+Rall = repmat((1:nbad),maxN,1);
+for i=1:size(CR,2)-1
+   R = find(CR(:,i+1)~=0);
+   badnds2(ii:ii-1+numel(R)) = badnds_fac2(R);
+   C1 = repmat(CR(R,i  )',maxN,1);
+   C2 = repmat(CR(R,i+1)',maxN,1);
+   Call_ = Call(:,R); Rall_ = Rall(:,R);
+   I = and(C1 <= Call_,Call_ < C2);
+   C_ = Call_(I); R_ = Rall_(I);
+   Cnew = C_ + 1 - CR(R_,i); 
+   if numel(R) == nbad
+   Rnew = R_+ii-1;
+   else
+   R2new = zeros(max(R_),1); tmp = R_([true; R_(1:end-1)~=R_(2:end)]);
+   R2new(tmp) = 1:numel(tmp); Rnew = R2new(R_)+ii-1;
+   end;
+   spheres2(:,Cnew+(Rnew-1)*size(spheres,2)) = spheres_(:,C_+(R_-1)*size(spheres,2));
+   ii = ii + numel(R);
+end;
+I = squeeze(spheres2(1,:,:)) ~= 0;
+[C,R] = find(I);
+edga = reshape([spheres2(1,I); spheres2(2,I); ...
+	        spheres2(2,I); spheres2(3,I); ...
+                spheres2(3,I); spheres2(1,I)],2,numel(R)*3);
+edga2R   = reshape(repmat(R',3,1),numel(R)*3,1);
+[edga,Ia] = sort(edga);
+[edga,I] = sortrows([edga2R edga']); 
+d = [any(edga(1,:) ~= edga(2,:));
+  and(or(edga(2:end-1,1) ~= edga(3:end,1),...
+      or(edga(2:end-1,2) ~= edga(3:end,2),...
+         edga(2:end-1,3) ~= edga(3:end,3))),...
+      or(edga(2:end-1,1) ~= edga(1:end-2,1),...
+      or(edga(2:end-1,2) ~= edga(1:end-2,2),...
+	 edga(2:end-1,3) ~= edga(1:end-2,3))));...
+	 any(edga(end,:) ~= edga(end-1,:))];
+edg = edga(d,:);
+Iflp = Ia(1,I(d)) == 2;
+edg(Iflp,2:3) = edg(Iflp,[3 2]);
+Is = find([edg(1:end-1,1)~=edg(2:end,1); true]);
+edgN = diff([0; Is]);
+circles = zeros(numel(edgN),max(edgN));
+circles(:,[1 2]) = edg(Is,[2 3]); %right thumb points in
+for i=3:size(circles,2)
+   Re = edgN >= i; 
+   Re_ = zeros(numel(edgN),1); Re_(Re) = 1:nnz(Re);
+   edg_ = edg(Re(edg(:,1)),:);
+   ndsrch = circles(Re,i-1);
+   Rf = edg_(:,2) == ndsrch(Re_(edg_(:,1)));
+   circles(Re,i) = edg_(Rf,3);
+end;
+nvec = cross(xy(circles(:,2),:)-xy(badnds2,:),xy(circles(:,1),:)-xy(badnds2,:),2);    %points out
+
+circID = bndmesh.IDs(bks_bndedg2edg(bndmesh.fac,nd2bndfac,sort([badnds2 circles(:,1:2)],2)));
+Iedg = bndnds2_(badnds2);
+badnds_edg = badnds2(Iedg);
+[circles2,circID2,nvec2] = split_3D_circles(badnds_edg,circles(Iedg,:),bndmesh,xy,nd2bndfac);
+sphr2R = [(1:numel(badnds2))'; find(Iedg)];
+badnds2_ = [badnds2; badnds_edg];
+circles(Iedg,:) = circles2(1:numel(circID2)/2,:);
+nvec(   Iedg,:) = nvec2(   1:numel(circID2)/2,:);
+circID(Iedg)    = circID2( 1:numel(circID2)/2);
+circles = [circles; circles2(numel(circID2)/2+1:end,:)];
+nvec    = [nvec   ; nvec2(   numel(circID2)/2+1:end,:)];
+circID  = [circID; circID2(  numel(circID2)/2+1:end)];
+%save for_debug3D.mat;
+[tmp,circR] = sortrows([badnds2_ circID]);
+badnds2_ = tmp(:,1); circID = tmp(:,2); circles = circles(circR,:); nvec = nvec(circR,:); sphr2R = sphr2R(circR); circR = (1:numel(circR))';
+d2a = [false; and(tmp(1:end-1,1) == tmp(2:end,1),tmp(1:end-1,2) == tmp(2:end,2))];
+d2b = [d2a(2:end); false]; nd2 = not(or(d2a,d2b));
+d = or(d2a,nd2);
+nvec = nvec(d,:)./repmat(sqrt(sum(nvec(d,:).^2,2)),1,3);
+
+[newfacs_,qualityN,badnds_,newtriN2_,badbadnds,new2R] = fill_circles(circles(d,:),Nmetric,xy,badnds2_(d),circR(d),[],options,nvec);
+newIDs_ = circID(new2R);
+d2a_ = d2a(new2R);
+newIDs  = [newIDs_ ; newIDs_(d2a_)];
+newfacs = [newfacs_; newfacs_(d2a_,[2 1 3])];
+new2R   = sphr2R([new2R; new2R(d2a_)-1]);
+
+if numel(badbadnds) ~= 0
+ Ikeep = true(max(badnds),1); Ikeep(badbadnds) = false;
+ spheres2 = spheres2(:,:,Ikeep(badnds2));
+ badnds2 = badnds2(Ikeep(badnds2));
+ spheres = spheres(:,:,Ikeep(badnds));
+ badnds  = badnds(Ikeep(badnds));
+ old2new = zeros(max(new2R),1); old2new(new2R) = 1; old2new(old2new==1) = 1:sum(old2new);
+ new2R = old2new(new2R);
+end;
+
+
+if numel(new2R) ~= 0
+   [new2R,I] = sort(new2R); newfacs = newfacs(I,:); newIDs = newIDs(I);
+end;
+if numel(new2R) > 1
+d = [new2R(1:end-1)~=new2R(2:end); true];
+else
+d = true;
+end;
+nN = diff([0; find(d)]); nMax = max(nN);
+C = repmat((1:nMax)',1,numel(nN)); CnN = repmat(nN',nMax,1); I = C <= CnN; 
+spheres3 = zeros(3,nMax,numel(badnds2));
+spheres3(:,reshape(C(I),size(newfacs,1),1)+(new2R-1)*size(spheres3,2)) = newfacs';
+spheres2 = [spheres2 spheres3];
+
+spheres = spheres(:,:,not(bndndsI_(badnds))); badnds = [badnds(not(bndndsI_(badnds))); badnds2];
+spheres_ = zeros(3,max(size(spheres,2),size(spheres2,2)),numel(badnds));
+spheres_(:,1:size(spheres,2),1:size(spheres,3)) = spheres;
+spheres_(:,:,size(spheres,3)+1:end) = [spheres2 zeros(3,size(spheres_,2)-size(spheres2,2),size(spheres2,3))];
+%save for_debug3D.mat;
+
+function [] = sanity_check3(xy,circles,badnds,newtriN,nvec,newfacs,options)
+circles = fix_circles(circles);
+[Ibad,z] = elem_inv(newfacs,xy,nvec); %Ibad = z<options.minA;
+if any(Ibad)
+	error(sprintf('Coarsening inverted a face trying to close a sphere (%1.1e,%1.1e,%1.1e)',mean(xy(newfacs(find(Ibad,1),:),:))));
+end;
+nc = size(circles,1); NN = sum(circles~=0,2);
+[R,Cc] = find(circles~=0); 
+R = reshape(R,numel(R),1); Cc = reshape(Cc,numel(R),1);%reshape when nc == 1
+thmp1 = [0:size(circles,2)-1]'; 
+Cl = thmp1(Cc); I = find(Cl==0); Cl(I) = NN(R(I));
+fac = [reshape(circles(R+(Cc-1)*nc),size(R)) reshape(circles(R+(Cl-1)*nc),size(R)) badnds(R)];
+[tmp,zold] = elem_inv(fac,xy);
+
+zoldA = zeros(size(circles)); zoldA(circles~=0) = zold;
+a2b = zeros(max(badnds),1); a2b(badnds) = 1:numel(badnds);
+newtriN = a2b(newtriN); [newtriN,I] = sort(newtriN); newfacs = newfacs(I,:); z = z(I);
+if options.area~=0 && abs(sum(zold)-sum(z)) > max(options.minA,1e-11)
+	error(sprintf('domain surface reduced (%1.1e), (curved geometry?)',sum(zold)-sum(z)))
+end;
 
 
 function [tri,triQ,bks,bndmesh,ndone] = adapt_flipedg(tri,xy,Nmetric,bndmesh,triQ,bks,options)
@@ -3230,7 +3514,7 @@ function triO = elem_find(bndmesh,I,xy_,options)
 %bndmesh.xyold   : node coordinates, M x 2 or M x 3 (2D or 3D), where M is the number of nodes
 %bndmesh.ngh     : element neighboughs, N x 3 or N x4 (2D or 3D)
 %bndmesh.trinew  : old element numbers containing new node coordinates, P x 1, where P is the number of new nodes
-%I               : list of new node number where bndmesh.trinew might be wrong
+%I               : list of new node numbers where bndmesh.trinew might be wrong
 %xy_             : list of coordinates for said nodes
 %options         : struct containing options.geomtol which is used as tolerance
 
@@ -3250,8 +3534,8 @@ nI = not(Igood); RC = triO_+(ind(s)-1)*size(bndmesh.triold,1);
 II = bndmesh.ngh(RC(nI))==0;
 if any(II) && options.verbose ~= -1
    If1 = find(nI); xye = xy_(If1(find(II,1)),:);
-   warning(sprintf('extrapolating to %1.1e %1.1e %1.1e',xye));
-end;	
+   warning(sprintf('extrapolating to %1.1e %1.1e %1.1e (and %d others)',xye,sum(II)));
+end;
 Igood(nI) = II; nI(nI) = not(II); %extrapolation
 triO(R(Igood)) = triO_(Igood);
 if all(Igood)
@@ -3307,9 +3591,9 @@ if dim==2
  X = A\reshape((xy_-xy(tri(nd2tri_,1),:))',Isumdim,1);
  s1 = X(1:2:Isumdim); s2 = X(2:2:Isumdim); s3 = 1-s1-s2;
  spike = zeros(size(s1));
- I_ = and(s1 <  s2, s1 <= s3); spike(I_) = -s1(I_);
- I_ = and(s2 <= s1, s2 <  s3); spike(I_) = -s2(I_);
- I_ = and(s3 <= s2, s3 <  s1); spike(I_) = -s3(I_);
+ I_ = and(s1 <= s2, s1 <= s3); spike(I_) = -s1(I_); %I_ = and(s1 <  s2, s1 <= s3);
+ I_ = and(s2 <= s1, s2 <= s3); spike(I_) = -s2(I_); %I_ = and(s2 <= s1, s2 <  s3);
+ I_ = and(s3 <= s2, s3 <= s1); spike(I_) = -s3(I_); %I_ = and(s3 <= s2, s3 <  s1); 
  spikes = inf(size(nd2tri)); spikes(I) = spike;
  [tmp,Cbest] = sort(spikes,2);
  I_ = Cbest(R)==C; [Rbest,I] = sort(R(I_));
@@ -3345,10 +3629,10 @@ else %3D
  X = A\reshape((xy_-xy(tri(nd2tri_,1),:))',Isumdim,1);
  s1 = X(1:3:Isumdim); s2 = X(2:3:Isumdim); s3 = X(3:3:Isumdim); s4 = 1-s1-s2-s3;
  spike = inf(size(s1));
- I_ = and(and(s1 <= s2, s1 <  s3), s1 <  s4); spike(I_) = -s1(I_);
- I_ = and(and(s2 <  s1, s2 <  s3), s2 <= s4); spike(I_) = -s2(I_);
- I_ = and(and(s3 <= s1, s3 <= s2), s3 <  s4); spike(I_) = -s3(I_);
- I_ = and(and(s4 <= s1, s4 <  s2), s4 <= s3); spike(I_) = -s4(I_);
+ I_ = and(and(s1 <= s2, s1 <= s3), s1 <= s4); spike(I_) = -s1(I_); %I_ = and(and(s1 <= s2, s1 <  s3), s1 <  s4); 
+ I_ = and(and(s2 <= s1, s2 <= s3), s2 <= s4); spike(I_) = -s2(I_); %I_ = and(and(s2 <  s1, s2 <  s3), s2 <= s4); 
+ I_ = and(and(s3 <= s1, s3 <= s2), s3 <= s4); spike(I_) = -s3(I_); %I_ = and(and(s3 <= s1, s3 <= s2), s3 <  s4);
+ I_ = and(and(s4 <= s1, s4 <= s2), s4 <= s3); spike(I_) = -s4(I_); %I_ = and(and(s4 <= s1, s4 <  s2), s4 <= s3); 
  spikes = inf(size(nd2tri)); spikes(I) = spike;
  [tmp,Cbest] = sort(spikes,2);
  I_ = Cbest(R)==C; [Rbest,I] = sort(R(I_));
@@ -3358,7 +3642,7 @@ else %3D
  s = [s1 s2 s3 s4];
  if nargin == 6 && any(options.geomtol < tmp(:,1)) && options.verbose ~= -1
    xye = xy_(I_,:); xye = xye(I,:); xye = xye(find(options.geomtol < tmp(:,1),1),:); 
-   warning(sprintf('extrapolating to (%1.1e,%1.1e,%1.1e)',xye));
+   warning(sprintf('extrapolating to (%1.1e,%1.1e,%1.1e) (and %d others)',xye,sum(options.geomtol < tmp(:,1))));
  end;
  if nargin == 6
  Nmetric = Nmetric(tri(triO,1),:).*repmat(s4,1,size(Nmetric,2)) ...
@@ -3426,18 +3710,18 @@ if size(tri,2) == 2
 	quality = gen_rel_edgL(tri,xy,Nmetric,options);
 	end;
 else
-        if options.qualP > 0
-  	  quality = elem_angle(tri,xy,options);
-  	  return;
-         end;
-if options.qualM == 1 || options.qualM > 7 
-quality = vassilevski(tri,xy,Nmetric,options);
-end;
-if options.qualM == 2 || options.qualM == 3 || options.qualM == 6
-    quality = worst_HL(tri,xy,Nmetric,options);
-end;
-if options.qualM == 4 || options.qualM == 5 || options.qualM == 7
-     quality = steiner_ell_metric(tri,xy,Nmetric,options);
+  if options.qualP > 0
+   quality = elem_angle(tri,xy,options,options);
+   return;
+  end;
+ if options.qualM == 14
+   quality = orth_func(tri,xy,Nmetric,options);
+ elseif options.qualM == 1 || 7 < options.qualM 
+   quality = vassilevski(tri,xy,Nmetric,options);
+ elseif options.qualM == 2 || options.qualM == 3 || options.qualM == 6
+   quality = worst_HL(tri,xy,Nmetric,options);
+ elseif options.qualM == 4 || options.qualM == 5 || options.qualM == 7
+   quality = steiner_ell_metric(tri,xy,Nmetric,options);
 end;
 end;
 
@@ -3618,7 +3902,7 @@ if nargout > 1
 	end;
 end;
 
-function [Ibad, area, xy1I, xy2I, xy3I, v1, v2, xy4I, v3] = tri_in_metric_space(tri,xy,Nmetric,options)
+function [Ibad, area, xy1I, xy2I, xy3I, v1, v2, xy4I, v3, mm] = tri_in_metric_space(tri,xy,Nmetric,options)
 if size(tri,2) == 3
 	[mm,xy1,xy2,xy3] = calc_tri_metric(tri,xy,Nmetric,options);
 else
@@ -3637,9 +3921,42 @@ if size(tri,2) == 4
 else
 	[Ibad,area] = elem_inv([],[],xy1I,xy2I,xy3I);
 	area = 0.5/(sqrt(3)/4)*area;
+  if nargout == 8
+   xy4I = mm;
+  end;
 end;
 	
-
+function quality = orth_func(tri,xy,Nmetric,options)
+dim = size(xy,2);
+xy1 = xy(tri(:,1),:); xy2 = xy(tri(:,2),:); xy3 = xy(tri(:,3),:);
+LAR = sqrt([sum((xy1-xy2).^2,2) sum((xy2-xy3).^2,2) sum((xy3-xy1).^2,2)]);
+if size(tri,2) == 3
+	[Ibad, area, xy1I, xy2I, xy3I, v1, v2, Mmetric] = tri_in_metric_space(tri,xy,Nmetric,options);
+	L = sqrt([sum(v1.^2,2) sum(v2.^2,2) sum((v1-v2).^2,2)]);
+  LAR = sqrt([sum((xy1-xy2).^2,2) sum((xy2-xy3).^2,2) sum((xy3-xy1).^2,2)]);
+  LAM = [xy1-xy2 xy2-xy3 xy3-xy1];
+else
+	[Ibad, area, xy1I, xy2I, xy3I, v1, v2, xy4I, v3, Mmetric] = tri_in_metric_space(tri,xy,Nmetric,options);
+	L = sqrt([sum(v1.^2,2) sum(v2.^2,2) sum(v3.^2,2) sum((v1-v2).^2,2) sum((v1-v3).^2,2) sum((v2-v3).^2,2)]);
+  xy4 = xy(tri(:,3),:);
+  LAR = [LAR sqrt([sum((xy1-xy4).^2,2) sum((xy2-xy4).^2,2) sum((xy3-xy4).^2,2)])];
+  LAM = [LAM xy1-xy4 xy2-xy4 xy3-xy4];
+end;
+[eigL,eigR] = analyt_eig(Mmetric);
+[tmp,Imin] = min(LAR,[],2);
+%[min(Imin) max(Imin)]
+xyvmin = LAM(:,(Imin-1)*dim+1:Imin*dim);
+[tmp,Imax] = max(eigL,[],2);
+tmp2 = max(eigL,[],2);
+AR = tmp2./tmp;
+eigRmax = eigR(:,(Imax-1)*dim+1:Imax*dim);
+options.qualM = 1;
+%mean(abs(sum(eigRmax.*xyvmin,2)).*tmp)
+%quality = myf(abs(sum(eigRmax.*xyvmin,2)).*tmp);
+%quality = myf(abs(sum(eigRmax.*xyvmin,2)).*tmp).*vassilevski(tri,xy,Nmetric,options);;
+%quality = myf(max(abs(sum(eigRmax.*xyvmin,2)).*tmp,AR.^-1.)).*vassilevski(tri,xy,Nmetric,options);
+quality = AR.^-4.*(myf(max(abs(sum(eigRmax.*xyvmin,2)).*tmp,AR.^-1.))) + (1.-AR.^-4).*vassilevski(tri,xy,Nmetric,options);
+%min(quality)
 function [badtri,z,zN] = elem_inv(tri,xy,xy1,xy2,xy3,xy4)
 if (nargin == 2 && numel(tri) == 0) || (nargin ~= 2 && numel(xy1) == 0) 
     badtri = []; z = []; 
@@ -3712,30 +4029,20 @@ Io = {[2 1], [2 3 1 3 1 2],[2 3 4 1 3 4 1 2 4 1 2 3]};
 Rd1 = tri(:); Cd1 = Rd1; Sd1 = repmat(dem_,size(tri,2),1)*facts(1,dim);
 Co1 = repmat(tri(:),dim,1); Ro1 = reshape(tri(:,Io{dim}),size(Co1)); So1 = repmat(dem_,(dim+1)*dim,1)*facts(2,dim);
 %K = diag(repmat(LL,size(xy,2)));
-K = diag(repmat(LL,dim,1)); i1 = -3;
-C2 = zeros(size(tri,1),4*dim*dim*sum(K(:)~=0)); R2 = C2; S2 = C2;
+K = diag(repmat(LL,dim,1));
+i0 = 0; C2 = zeros(size(tri,1),(dim+1)*(dim+1)*sum(K(:)~=0)); R2 = C2; S2 = C2;
 for hh=1:dim %grad(g_test,x[hh])
 for ii=1:dim %grad(g,x[ii]) 
 if K(hh,ii) == 0.
 	continue;
 end;
-for jj=1:dim %innerit g_test
-for mm=1:dim %innerit g
-i1 = i1+4;
-i2 = i1+1; i3 = i1+2; i4 = i1+3;
+for jj=1:dim+1 %innerit g_test
+for mm=1:dim+1 %innerit g
 X_ = X(:,dim*(jj-1)+hh).*X(:,dim*(mm-1)+ii).*dem_*facts(4,dim)*K(hh,ii);
-R2(:,i1) = tri(:,1);
-C2(:,i1) = tri(:,1);
-S2(:,i1) = X_;
-R2(:,i2) = tri(:,1);
-C2(:,i2) = tri(:,jj+1);
-S2(:,i2) = -X_;
-R2(:,i3) = tri(:,mm+1);
-C2(:,i3) = tri(:,1);
-S2(:,i3) = -X_;
-R2(:,i4) = tri(:,mm+1);
-C2(:,i4) = tri(:,jj+1);
-S2(:,i4) = X_;
+i0 = i0 + 1;
+R2(:,i0) = tri(:,mm);
+C2(:,i0) = tri(:,jj);
+S2(:,i0) = X_;
 end;
 end;
 end;
@@ -3772,8 +4079,91 @@ So = repmat(dem_,(dim+1)*dim,1).*gamma(reshape(tri(:,Io{dim}),size(Co)),ii)*fact
 b = sparse([Rd; Ro], [Cd; Co], [Sd; So]);
 end;
 b(zerodofs) = 0;
-gammaf(:,ii) = fem_solve(A,b,options); 
+gammaf(:,ii) = A\b; %fem_solve(A,b,options); 
 end;
+%close all; trimesh(tri,xy(:,1),xy(:,2),zeros(size(gammaf)),gammaf);
+
+
+function gammaf = fvm_filter(tri,xy,bndmesh,Lmin,gamma,bcs,options)
+% solves the PDE filter using a finite volume method. The output is element-wise constant
+%%% INPUT %%%
+%tri        : element list, N x 3 or N x 4 (2D or 3D), where N is the number of elements
+%xy         : node coordinates, M x 2 or M x 3 (2D or 3D), where M is the number of nodes
+%bndmesh.edg: boundary edge list (2D), P x 2, where P is the number of boundary edges 
+%bndmesh.fac: boundary face list (3D), P x 3, where P is the number of boundary faces
+%bndmesh.IDs: boundary ID list. 
+%            The boundary mesh is used to impose Dirchlet boundary conditions, so it is optional.
+%Lmin       : filter length
+%gamma      : fields to be filtered N x Q, where Q is the number of fields
+%bcs        : optional variable with the ID of the boundary on which to impose Dirichlet boundary conditions
+%options    : struct containing options for the linear solve (\ or cgs)
+
+%%% OUTPUT %%%
+%gammaf     : element-wise filtered fields, N x Q
+tris = size(tri,1);
+gammaf = zeros(size(tri,1),size(gamma,2));
+dim = size(xy,2); LL = Lmin^2;
+[I,dem] = elem_inv(tri,xy);
+facts = [1 0.5 1./6.; 1 1 0.5];
+if dim == 2
+ [edg,edg2tri,tri2edg] = bks_all(tri);
+ nvec = [xy(edg(:,1),2)-xy(edg(:,2),2) xy(edg(:,2),1)-xy(edg(:,1),1)];
+else
+ [fac,edg2tri,tri2edg] = bks_all3D(tri); %fac2tri = 'edg2tri', tri2fac = 'tri2edg'
+ nvec = cross(xy(fac(:,2),:)-xy(fac(:,1),:),xy(fac(:,3),:)-xy(fac(:,1),:),2);
+end;
+%dem2 = sqrt(sum(nvec.^2,2));
+trixy = squeeze(mean(reshape(xy(tri(:),:),size(tri,1),dim+1,dim),2));
+I = edg2tri(:,2) ~= 0; %and(edg2tri(:,1) ~= 0,edg2tri(:,2) ~= 0);
+dtrixy = zeros(size(edg2tri,1),dim); 
+dtrixy(I,:) = trixy(edg2tri(I,1),:) - trixy(edg2tri(I,2),:); 
+dtrixy(I,:) = dtrixy(I,:)./repmat(sum(dtrixy(I,:).^2,2),1,dim); dtrixy = LL*sum(dtrixy.*nvec,2);
+Rd = (1:tris)'; Cd = Rd; Sd = dem*facts(1,dim);
+Ro = repmat(Rd,(dim+1),2); Co = edg2tri(tri2edg(:),:); 
+
+msgn = ones(size(Rd,1)*(dim+1),2); flp = reshape(Co,size(msgn)) ~= Ro; msgn(flp) = -1;
+So = reshape(repmat(dtrixy(tri2edg(:)),2,1),size(msgn)).*msgn*facts(2,dim);
+dl = So(:,1)~=0; % == and(So(:,1)==0.,So(:,2)==0.)
+%%
+%sort Ro in O(N) (faster for big meshes)
+dl = repmat(dl,1,2); dl = [true(1,tris); reshape(dl,tris,2*(dim+1))'];
+Ro = [Rd'; reshape(Ro,tris,2*(dim+1))']; Ro = Ro(dl);
+Co = [Cd'; reshape(Co,tris,2*(dim+1))']; Co = Co(dl);
+So = [Sd'; reshape(So,tris,2*(dim+1))']; So = So(dl);
+%A = sparse(Co(:), Ro(:), So(:));
+%%
+%So = So(dl,:); Co = Co(dl,:); Ro = Ro(dl,:);
+%A = sparse([Rd; Ro(:)], [Cd; Co(:)],[Sd; So(:)]);
+
+C = Co(:); R = Ro(:); S = So(:);
+%set bcs
+zerodofs = false(tris,1);
+if numel(bcs) ~= 0
+for i=1:numel(bcs{1})
+I = bndmesh.IDs == bcs{1}(i);
+if dim==2
+ bndedg2edg = bks_bndedg2edg(edg,inv_table(edg),bndmesh.edg);
+ zerodofs(edg2tri(bndedg2edg(I))) = true;
+else
+ bndfac2fac = bks_bndedg2edg(fac,inv_table(fac),bndmesh.fac);
+ zerodofs(edg2tri(bndfac2fac(I))) = true;
+end;
+S(and(R ~= C,or(zerodofs(R),zerodofs(C)))) = 0;
+S(and(R == C,zerodofs(R))) = 1.; 
+end;%for
+end;%if
+A = sparse(C, R, S, tris, tris);
+
+for i=1:size(gamma,2)
+ if size(gamma,1) == size(tri,1)
+  b = gamma(:,i).*dem*facts(1,dim);
+ else
+  b = mean(reshape(gamma(tri,i),size(tri)),2).*dem*facts(1,dim);
+ end;
+ b(zerodofs) = 0;
+ gammaf(:,i) = fem_solve(A,b,options);
+end;
+
 
 
 function CGf = fem_tri2xy(tri,xy,DGf,options)
@@ -3825,6 +4215,11 @@ end;
 A = spdiags(All,digs,Isumdim,Isumdim);
 X = A\b;
 X = reshape(X',dim^2,tris)';
+if dim==2
+X = [-sum(X(:,1:dim:end),2) -sum(X(:,2:dim:end),2) X];
+else
+X = [-sum(X(:,1:dim:end),2) -sum(X(:,2:dim:end),2) -sum(X(:,3:dim:end),2) X];
+end;
 
 
 function A = fem_sq_grad(tri,xy,b,X)
@@ -3834,10 +4229,11 @@ if nargin == 3
   X = fem_getX(tri,xy);
 end;
 for i=1:size(b,2);
-triz = reshape(b(tri(:,2:end),i),size(tri)-[0 1]) - repmat(b(tri(:,1),i),1,dim);
+%triz = reshape(b(tri(:,2:end),i),size(tri)-[0 1]) - repmat(b(tri(:,1),i),1,dim);
+triz = reshape(b(tri,i),size(tri));
 for j=1:dim %grad(b,x[j])
-for m=1:dim
-for n=1:dim
+for m=1:dim+1
+for n=1:dim+1
 A(:,i) = A(:,i) + triz(:,m).*X(:,dim*(m-1)+j).*triz(:,n).*X(:,dim*(n-1)+j);
 end;
 end;
@@ -3872,31 +4268,21 @@ else
 end;
 facts = [1./3.  1./12. 1./60.; 1./6. 1./24. 1./120.; 0.5 1./6. 1./24.; 1. 0.5 1./6.];
 Io = {[2 1], [2 3 1 3 1 2],[2 3 4 1 3 4 1 2 4 1 2 3]};
-i1 = -3;
-C = zeros(size(tri,1),4*dim*dim*dim); R = C; S = C;
+i0 = 0 ; C = zeros(size(tri,1),(dim+1)*(dim+1)*dim); 
+R = C; S = C;
 if size(tri,1) == numel(gamma)
  dem2 = (Emin + (1.-Emin)*gamma.^simpP).*dem_*facts(4,dim);
 else
  dem2 = (Emin + (1.-Emin)*mean(gamma(tri).^simpP,2)).*dem_*facts(4,dim);
 end;
 for hh=1:dim %grad(g_test,x[hh]) grad(g,x[hh]) 
-for jj=1:dim %innerit g_test
-for mm=1:dim %innerit g
-i1 = i1+4;
-i2 = i1+1; i3 = i1+2; i4 = i1+3;
+for jj=1:dim+1 %innerit g_test
+for mm=1:dim+1 %innerit g
 X_ = X(:,dim*(jj-1)+hh).*X(:,dim*(mm-1)+hh).*dem2;
-R(:,i1) = tri(:,1);
-C(:,i1) = tri(:,1);
-S(:,i1) = X_;
-R(:,i2) = tri(:,1);
-C(:,i2) = tri(:,jj+1);
-S(:,i2) = -X_;
-R(:,i3) = tri(:,mm+1);
-C(:,i3) = tri(:,1);
-S(:,i3) = -X_;
-R(:,i4) = tri(:,mm+1);
-C(:,i4) = tri(:,jj+1);
-S(:,i4) = X_;
+i0 = i0 + 1;
+R(:,i0) = tri(:,mm);
+C(:,i0) = tri(:,jj);
+S(:,i0) = X_;
 end;
 end;
 end;
@@ -4353,7 +4739,7 @@ if any(Igood)
 qualityN_(Igood) = qual_(CI(Igood)+nN_([Igood; false]));
 end;
 if options.consRM
-	Ibetter = qualityN_*options.minchg > triQtb(badnds); %badnds(R2R)
+	Ibetter = qualityN_ > options.consRM*triQtb(badnds); %badnds(R2R)
 else
 	Ibetter = qualityN_ > options.minqual;
 end;
@@ -4463,7 +4849,7 @@ qual = inf(numel(nN),nMax); qual(Rs2R(Rs)+(CI-1)*numel(nN)) = qualityN_;
 Rsd = Rs(d);
 
 if options.consRM || nargin == 7
-Ibetter = min(qual,[],2)*options.minchg > triQtb(badnds(Rsd));
+Ibetter = min(qual,[],2) > options.consRM*triQtb(badnds(Rsd));
 else
 Ibetter = min(qual,[],2) > options.minqual;
 end;
@@ -4678,7 +5064,7 @@ else
 end;
 fid = fopen(flname,'w');
 output1 = '<?xml version="1.0"?>\n<VTKFile type="Collection" version="0.1">\n  <Collection>\n';
-output2 = [];
+output2 = '';
 flstrt = max([0 find(flname==mslsh)])+1;
 for i=1:ii
 output2 = [output2 sprintf('    <DataSet timestep="%d" part="0" file="%s%d.vtu" />\n', i-1, flname(flstrt:end-4), i-1)];
@@ -4744,7 +5130,7 @@ else
 end;
 fid = fopen(flname,'w');
 output1 = '<?xml version="1.0"?>\n<VTKFile type="Collection" version="0.1">\n  <Collection>\n';
-output2 = [];
+output2 = '';
 flstrt = max([0 find(flname==mslsh)])+1;
 for i=1:ii
 output2 = [output2 sprintf('    <DataSet timestep="%d" part="0" file="%s%d.vtu" />\n', i-1, flname(flstrt:end-4), i-1)];
@@ -4932,8 +5318,8 @@ gradf = zeros(size(triz));
 hes = zeros(tris,dim*dim);
 hesn = zeros(xys,dim*dim);
 for i=1:dim
-for j=1:dim
-	gradf(:,i) = gradf(:,i) + triz(:,j).*X(:,dim*(j-1)+i);
+for j=1:dim+1
+  gradf(:,i) = gradf(:,i) + z(tri(:,j)).*X(:,dim*(j-1)+i);
 end;
 if doproj
 gradfn_ = fem_tri2xy(tri,xy,gradf(:,i),options);
@@ -4943,8 +5329,8 @@ gradfn_ = sum(gradfn_.*nd2trim,2);
 end;
 triz_ = gradfn_(tri(:,2:end)) - repmat(gradfn_(tri(:,1)),1,dim);
 for j=1:dim
-for k=1:dim
-	hes(:,(i-1)*dim+j) = hes(:,(i-1)*dim+j) + triz_(:,k).*X(:,dim*(k-1)+j);
+for k=1:dim+1
+  hes(:,(i-1)*dim+j) = hes(:,(i-1)*dim+j) + gradfn_(tri(:,k)).*X(:,dim*(k-1)+j);
 end;
 if doproj
 hesn(:,(i-1)*dim+j) = fem_tri2xy(tri,xy,hes(:,(i-1)*dim+j),options);
