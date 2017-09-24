@@ -19,5 +19,5 @@ The same technology can be used for 2D/3D minimum compliance in linear elasticit
 
    top5001(4e-2,5e-3,0.1,0.3,1   , 2,0.5,0.25,1/10,400,1e-3,'fig2',1.025,5);
 
-There is an upcoming publication related to IMR26 with more details.
+For more details visit the IMR26 paper: http://imr.sandia.gov/papers/imr26/1014_imr26_Jensen.pdf
 
