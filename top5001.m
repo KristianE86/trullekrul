@@ -147,8 +147,10 @@ for ii=1:itertotal
  %Optimality criteria
  dOdrho = dOdrho.*demN;
  sclr(ii,16) = now();
+ rho_old = rho;
  rho = optC(rho, dOdrho, demN./sum(demN), Tvol, mvlimit);
  sclr(ii,17) = now();
+ sclr(ii,18) = sum(abs(rho-rho_old).*demN)/sum(demN);
  %Output
  sclr(ii,6) = simpP;
  sclr(ii,2) = sum(rho.*demN)/sum(demN);
@@ -157,8 +159,8 @@ for ii=1:itertotal
  sclr(ii,5) = numel(rho);
  
  export_vtk_binary(flname,tri,xy,[rho u dOdrho./demN],ii+1,{'rho','umag','sensitivity'});
- disp(sprintf('%0d, O = %2.5f, nodes=%d, P=%2.2f, V=%0.3f, C=%2.2f, ND=%0.1f %%',...
- ii,sclr(ii,1),sclr(ii,5),simpP,sclr(ii,2),sclr(ii,3),sclr(ii,4)*100));
+ disp(sprintf('%0d, O = %2.5f, chg = %1.1e, nodes=%d, P=%2.2f, V=%0.3f, C=%2.2f, ND=%0.1f %%',...
+ ii,sclr(ii,1),sclr(ii,18),sclr(ii,5),simpP,sclr(ii,2),sclr(ii,3),sclr(ii,4)*100));
  if mod(ii,10) == 0 || ii==itertotal %save every 10 iterations only
   if ii ~= 10
    system(['rm ' outnm '/sclr.mat']);
@@ -316,8 +318,6 @@ xy = [xy; xy(not(Ir),:).*refle];
 if nargin == 4
  rho = [rho; rho(not(Ir))];
 end;
-
-
 
 function [tri,xy] = export_stl(tri,xy,c,cutv,flname)
 %%% exports the volume satisfying cutv < c
@@ -769,6 +769,9 @@ elseif options.prag_adapt
     [tri,xy,bndmesh,Nmetric,triQ,bks]  = pragadapt(tri,xy,Nmetric,bndmesh,triQ,bks,geomfunc,options);
 else
 [tri,xy,bndmesh,Nmetric,triQ,bks]  = newadapt(tri,xy,Nmetric,bndmesh,triQ,bks,bks,geomfunc,options);
+end;
+if isfield(bndmesh,'triID')
+ bndmesh = bndmesh_exterior(bndmesh,tri);
 end;
 if isfield(bndmesh,'xyold');
 	[Nmetric_,triO,s,Igood] = elem_interp(bndmesh.triold,bndmesh.xyold,bndmesh.trinew,xy,options,Nmetric_);
@@ -3471,18 +3474,18 @@ if size(tri,2) == 2
 	quality = gen_rel_edgL(tri,xy,Nmetric,options);
 	end;
 else
-        if options.qualP > 0
-  	  quality = elem_angle(tri,xy,options);
-  	  return;
-         end;
-if options.qualM == 1 || options.qualM > 7 
-quality = vassilevski(tri,xy,Nmetric,options);
-end;
-if options.qualM == 2 || options.qualM == 3 || options.qualM == 6
-    quality = worst_HL(tri,xy,Nmetric,options);
-end;
-if options.qualM == 4 || options.qualM == 5 || options.qualM == 7
-     quality = steiner_ell_metric(tri,xy,Nmetric,options);
+  if options.qualP > 0
+   quality = elem_angle(tri,xy,options,options);
+   return;
+  end;
+ if options.qualM == 14
+   quality = orth_func(tri,xy,Nmetric,options);
+ elseif options.qualM == 1 || 7 < options.qualM 
+   quality = vassilevski(tri,xy,Nmetric,options);
+ elseif options.qualM == 2 || options.qualM == 3 || options.qualM == 6
+   quality = worst_HL(tri,xy,Nmetric,options);
+ elseif options.qualM == 4 || options.qualM == 5 || options.qualM == 7
+   quality = steiner_ell_metric(tri,xy,Nmetric,options);
 end;
 end;
 
@@ -3663,7 +3666,7 @@ if nargout > 1
 	end;
 end;
 
-function [Ibad, area, xy1I, xy2I, xy3I, v1, v2, xy4I, v3] = tri_in_metric_space(tri,xy,Nmetric,options)
+function [Ibad, area, xy1I, xy2I, xy3I, v1, v2, xy4I, v3, mm] = tri_in_metric_space(tri,xy,Nmetric,options)
 if size(tri,2) == 3
 	[mm,xy1,xy2,xy3] = calc_tri_metric(tri,xy,Nmetric,options);
 else
@@ -3682,9 +3685,42 @@ if size(tri,2) == 4
 else
 	[Ibad,area] = elem_inv([],[],xy1I,xy2I,xy3I);
 	area = 0.5/(sqrt(3)/4)*area;
+  if nargout == 8
+   xy4I = mm;
+  end;
 end;
 	
-
+function quality = orth_func(tri,xy,Nmetric,options)
+dim = size(xy,2);
+xy1 = xy(tri(:,1),:); xy2 = xy(tri(:,2),:); xy3 = xy(tri(:,3),:);
+LAR = sqrt([sum((xy1-xy2).^2,2) sum((xy2-xy3).^2,2) sum((xy3-xy1).^2,2)]);
+if size(tri,2) == 3
+	[Ibad, area, xy1I, xy2I, xy3I, v1, v2, Mmetric] = tri_in_metric_space(tri,xy,Nmetric,options);
+	L = sqrt([sum(v1.^2,2) sum(v2.^2,2) sum((v1-v2).^2,2)]);
+  LAR = sqrt([sum((xy1-xy2).^2,2) sum((xy2-xy3).^2,2) sum((xy3-xy1).^2,2)]);
+  LAM = [xy1-xy2 xy2-xy3 xy3-xy1];
+else
+	[Ibad, area, xy1I, xy2I, xy3I, v1, v2, xy4I, v3, Mmetric] = tri_in_metric_space(tri,xy,Nmetric,options);
+	L = sqrt([sum(v1.^2,2) sum(v2.^2,2) sum(v3.^2,2) sum((v1-v2).^2,2) sum((v1-v3).^2,2) sum((v2-v3).^2,2)]);
+  xy4 = xy(tri(:,3),:);
+  LAR = [LAR sqrt([sum((xy1-xy4).^2,2) sum((xy2-xy4).^2,2) sum((xy3-xy4).^2,2)])];
+  LAM = [LAM xy1-xy4 xy2-xy4 xy3-xy4];
+end;
+[eigL,eigR] = analyt_eig(Mmetric);
+[tmp,Imin] = min(LAR,[],2);
+%[min(Imin) max(Imin)]
+xyvmin = LAM(:,(Imin-1)*dim+1:Imin*dim);
+[tmp,Imax] = max(eigL,[],2);
+tmp2 = max(eigL,[],2);
+AR = tmp2./tmp;
+eigRmax = eigR(:,(Imax-1)*dim+1:Imax*dim);
+options.qualM = 1;
+%mean(abs(sum(eigRmax.*xyvmin,2)).*tmp)
+%quality = myf(abs(sum(eigRmax.*xyvmin,2)).*tmp);
+%quality = myf(abs(sum(eigRmax.*xyvmin,2)).*tmp).*vassilevski(tri,xy,Nmetric,options);;
+%quality = myf(max(abs(sum(eigRmax.*xyvmin,2)).*tmp,AR.^-1.)).*vassilevski(tri,xy,Nmetric,options);
+quality = AR.^-4.*(myf(max(abs(sum(eigRmax.*xyvmin,2)).*tmp,AR.^-1.))) + (1.-AR.^-4).*vassilevski(tri,xy,Nmetric,options);
+%min(quality)
 function [badtri,z,zN] = elem_inv(tri,xy,xy1,xy2,xy3,xy4)
 if (nargin == 2 && numel(tri) == 0) || (nargin ~= 2 && numel(xy1) == 0) 
     badtri = []; z = []; 
@@ -3757,30 +3793,20 @@ Io = {[2 1], [2 3 1 3 1 2],[2 3 4 1 3 4 1 2 4 1 2 3]};
 Rd1 = tri(:); Cd1 = Rd1; Sd1 = repmat(dem_,size(tri,2),1)*facts(1,dim);
 Co1 = repmat(tri(:),dim,1); Ro1 = reshape(tri(:,Io{dim}),size(Co1)); So1 = repmat(dem_,(dim+1)*dim,1)*facts(2,dim);
 %K = diag(repmat(LL,size(xy,2)));
-K = diag(repmat(LL,dim,1)); i1 = -3;
-C2 = zeros(size(tri,1),4*dim*dim*sum(K(:)~=0)); R2 = C2; S2 = C2;
+K = diag(repmat(LL,dim,1));
+i0 = 0; C2 = zeros(size(tri,1),(dim+1)*(dim+1)*sum(K(:)~=0)); R2 = C2; S2 = C2;
 for hh=1:dim %grad(g_test,x[hh])
 for ii=1:dim %grad(g,x[ii]) 
 if K(hh,ii) == 0.
 	continue;
 end;
-for jj=1:dim %innerit g_test
-for mm=1:dim %innerit g
-i1 = i1+4;
-i2 = i1+1; i3 = i1+2; i4 = i1+3;
+for jj=1:dim+1 %innerit g_test
+for mm=1:dim+1 %innerit g
 X_ = X(:,dim*(jj-1)+hh).*X(:,dim*(mm-1)+ii).*dem_*facts(4,dim)*K(hh,ii);
-R2(:,i1) = tri(:,1);
-C2(:,i1) = tri(:,1);
-S2(:,i1) = X_;
-R2(:,i2) = tri(:,1);
-C2(:,i2) = tri(:,jj+1);
-S2(:,i2) = -X_;
-R2(:,i3) = tri(:,mm+1);
-C2(:,i3) = tri(:,1);
-S2(:,i3) = -X_;
-R2(:,i4) = tri(:,mm+1);
-C2(:,i4) = tri(:,jj+1);
-S2(:,i4) = X_;
+i0 = i0 + 1;
+R2(:,i0) = tri(:,mm);
+C2(:,i0) = tri(:,jj);
+S2(:,i0) = X_;
 end;
 end;
 end;
@@ -3819,6 +3845,7 @@ end;
 b(zerodofs) = 0;
 gammaf(:,ii) = A\b; %fem_solve(A,b,options); 
 end;
+%close all; trimesh(tri,xy(:,1),xy(:,2),zeros(size(gammaf)),gammaf);
 
 
 function CGf = fem_tri2xy(tri,xy,DGf,options)
@@ -3870,6 +3897,11 @@ end;
 A = spdiags(All,digs,Isumdim,Isumdim);
 X = A\b;
 X = reshape(X',dim^2,tris)';
+if dim==2
+X = [-sum(X(:,1:dim:end),2) -sum(X(:,2:dim:end),2) X];
+else
+X = [-sum(X(:,1:dim:end),2) -sum(X(:,2:dim:end),2) -sum(X(:,3:dim:end),2) X];
+end;
 
 
 function A = fem_sq_grad(tri,xy,b,X)
@@ -3879,10 +3911,11 @@ if nargin == 3
   X = fem_getX(tri,xy);
 end;
 for i=1:size(b,2);
-triz = reshape(b(tri(:,2:end),i),size(tri)-[0 1]) - repmat(b(tri(:,1),i),1,dim);
+%triz = reshape(b(tri(:,2:end),i),size(tri)-[0 1]) - repmat(b(tri(:,1),i),1,dim);
+triz = reshape(b(tri,i),size(tri));
 for j=1:dim %grad(b,x[j])
-for m=1:dim
-for n=1:dim
+for m=1:dim+1
+for n=1:dim+1
 A(:,i) = A(:,i) + triz(:,m).*X(:,dim*(m-1)+j).*triz(:,n).*X(:,dim*(n-1)+j);
 end;
 end;
@@ -3892,7 +3925,7 @@ end;
 function u = fem_hooke(tri,xy,bndmesh,gamma,Emin,nu,simpP,bcs,X)
 %for a 2D input mesh the following problem is solved
 %inner(sym(grad(v)),E/(1-nu^2)*(sym(grad(u)) + nu*Identity(2)*div(u)))*dx == u*dx + dot(dot(sigma_load,n),v)*ds (FEniCS notation), 
-%for a 2D input mesh the following problem is solved
+%for a 3D input mesh the following problem is solved
 %inner(sym(grad(v)),E/(1+nu)/(1-2*nu)*((1-2*nu)*sym(grad(u)) + nu*Identity(3)*div(u))*dx == u*dx + dot(dot(sigma_load,n),v)*ds (FEniCS notation), 
 % where v and u are test and trial functions (FunctionSpace(mesh,'CG',1)), ds is the load boundary and
 % E = Emin + (1-Emin)*gamma^simpP
@@ -3932,7 +3965,7 @@ if dim==2
 else
  demE = demE/(1+nu)/(1-2*nu);
 end;	
-C = zeros(size(tri,1),4*dim*dim*((dim==2)*6+(dim==3)*12)); R = C; S = C; i1 = -3;
+i0 = 0; C = zeros(size(tri,1),(dim+1)*(dim+1)*((dim==2)*6+(dim==3)*12)); R = C; S = C;
 for ii=1:dim %u(i)
 for jj=1:dim %u_test(j)
 for mm=1:dim %grad(u,x[m])
@@ -3945,34 +3978,24 @@ if(ii==jj && mm==nn && ii==mm) %grad(u(i)
  end;
 elseif(ii==mm && jj==nn) % && ii~=jj
  K = nu;
-elseif(ii~=mm && jj~=nn)
+elseif((ii==nn && jj==mm) || (ii==jj && mm==nn && ii~=mm)) %(ii~=mm && jj~=nn)
  if dim==2
   K = (1.-nu)/2;
- elseif numel(unique([ii jj mm nn])) == 2
+ else%if numel(unique([ii jj mm nn])) == 2
   K = (1.-2.*nu)/2.;
- else
-  continue;
+ %else
+ % continue;
  end;
 else
  continue;
 end;
-for oo=1:dim %innerit u
-for pp=1:dim %innerit u_test
-i1 = i1+4;
-i2 = i1+1; i3 = i1+2; i4 = i1+3;
+for oo=1:dim+1 %innerit u
+for pp=1:dim+1 %innerit u_test
 X_ = X(:,dim*(oo-1)+mm).*X(:,dim*(pp-1)+nn).*demE*facts(4,dim)*K;
-R(:,i1) = dim*(tri(:,1)   -1)+ii;
-C(:,i1) = dim*(tri(:,1)   -1)+jj;
-S(:,i1) = X_;
-R(:,i2) = dim*(tri(:,1)   -1)+ii;
-C(:,i2) = dim*(tri(:,pp+1)-1)+jj;
-S(:,i2) = -X_;
-R(:,i3) = dim*(tri(:,oo+1)-1)+ii;
-C(:,i3) = dim*(tri(:,1)   -1)+jj;
-S(:,i3) = -X_;
-R(:,i4) = dim*(tri(:,oo+1)-1)+ii;
-C(:,i4) = dim*(tri(:,pp+1)-1)+jj;
-S(:,i4) = X_;
+i0 = i0 + 1;
+R(:,i0) = dim*(tri(:,oo)-1)+ii;
+C(:,i0) = dim*(tri(:,pp)-1)+jj;
+S(:,i0) = X_;
 end;%pp
 end;%oo
 end;%nn
@@ -4075,9 +4098,9 @@ if nargin==4
 end;
 for hh=1:size(u,2)
 for ii=1:dim %u(i)
-triy = reshape(u(dim*(tri(:,2:end)-1)+ii,hh),size(tri)-[0 1]) - repmat(u(dim*(tri(:,1)-1)+ii,hh),1,dim);
+triy = reshape(u(dim*(tri-1)+ii,hh),size(tri));
 for jj=1:dim %u_test(j)
-triz = reshape(u(dim*(tri(:,2:end)-1)+jj,hh),size(tri)-[0 1]) - repmat(u(dim*(tri(:,1)-1)+jj,hh),1,dim);
+triz = reshape(u(dim*(tri-1)+jj,hh),size(tri));
 for mm=1:dim %grad(u,x[m])
 for nn=1:dim %grad(u_test,x[n])
 if(ii==jj && mm==nn && ii==mm) %grad(u(i)
@@ -4088,19 +4111,19 @@ if(ii==jj && mm==nn && ii==mm) %grad(u(i)
  end;
 elseif(ii==mm && jj==nn) % && ii~=jj
  K = nu;
-elseif(ii~=mm && jj~=nn)
+elseif((ii==nn && jj==mm) || (ii==jj && mm==nn && ii~=mm)) %(ii~=mm && jj~=nn)
  if dim==2
   K = (1.-nu)/2;
- elseif numel(unique([ii jj mm nn])) == 2
+ else%if numel(unique([ii jj mm nn])) == 2
   K = (1.-2.*nu)/2.;
- else
-  continue;
+ %else
+ % continue;
  end;
 else
  continue;
 end;
-for oo=1:dim %innerit u
-for pp=1:dim %innerit u_test
+for oo=1:dim+1 %innerit u
+for pp=1:dim+1 %innerit u_test
 A(:,hh) = A(:,hh) + K*triy(:,oo).*X(:,dim*(oo-1)+mm).*triz(:,pp).*X(:,dim*(pp-1)+nn);
 end;%pp
 end;%oo
@@ -4110,7 +4133,7 @@ end;%jj
 end;%ii
 end;%hh
 if dim==2
- A = A/(1-nu^2)
+ A = A/(1-nu^2);
 else
  A = A/(1+nu)/(1-2*nu);
 end;
@@ -4873,7 +4896,7 @@ else
 end;
 fid = fopen(flname,'w');
 output1 = '<?xml version="1.0"?>\n<VTKFile type="Collection" version="0.1">\n  <Collection>\n';
-output2 = [];
+output2 = '';
 flstrt = max([0 find(flname==mslsh)])+1;
 for i=1:ii
 output2 = [output2 sprintf('    <DataSet timestep="%d" part="0" file="%s%d.vtu" />\n', i-1, flname(flstrt:end-4), i-1)];
@@ -4939,7 +4962,7 @@ else
 end;
 fid = fopen(flname,'w');
 output1 = '<?xml version="1.0"?>\n<VTKFile type="Collection" version="0.1">\n  <Collection>\n';
-output2 = [];
+output2 = '';
 flstrt = max([0 find(flname==mslsh)])+1;
 for i=1:ii
 output2 = [output2 sprintf('    <DataSet timestep="%d" part="0" file="%s%d.vtu" />\n', i-1, flname(flstrt:end-4), i-1)];
@@ -5127,8 +5150,8 @@ gradf = zeros(size(triz));
 hes = zeros(tris,dim*dim);
 hesn = zeros(xys,dim*dim);
 for i=1:dim
-for j=1:dim
-	gradf(:,i) = gradf(:,i) + triz(:,j).*X(:,dim*(j-1)+i);
+for j=1:dim+1
+  gradf(:,i) = gradf(:,i) + z(tri(:,j)).*X(:,dim*(j-1)+i);
 end;
 if doproj
 gradfn_ = fem_tri2xy(tri,xy,gradf(:,i),options);
@@ -5138,8 +5161,8 @@ gradfn_ = sum(gradfn_.*nd2trim,2);
 end;
 triz_ = gradfn_(tri(:,2:end)) - repmat(gradfn_(tri(:,1)),1,dim);
 for j=1:dim
-for k=1:dim
-	hes(:,(i-1)*dim+j) = hes(:,(i-1)*dim+j) + triz_(:,k).*X(:,dim*(k-1)+j);
+for k=1:dim+1
+  hes(:,(i-1)*dim+j) = hes(:,(i-1)*dim+j) + gradfn_(tri(:,k)).*X(:,dim*(k-1)+j);
 end;
 if doproj
 hesn(:,(i-1)*dim+j) = fem_tri2xy(tri,xy,hes(:,(i-1)*dim+j),options);
