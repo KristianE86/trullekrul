@@ -1,5 +1,3 @@
-
-
 %Copyright (c) 2013, 2014, 2015 Imperial College London
               %2016, 2017       Technical University of Denmark
 %All rights reserved.
@@ -29,19 +27,19 @@
 %Department of Micro- and Nanotechnology, Technical University of Denmark (DTU)
 %Ørsteds Plads, DK-2800 Kgs. Lyngby
 %top5001(nan,2e-2,0.5,0.3,false,2,1, [],1/50,400,1e-2,'fig5a',1.025,5,false); %2D fixed
-%top5001(7.5e2,2e-2,0.5,0.3,false,2,1, [],1/20,400,1e-2,'fig5b',1.025,5,false); %2D coarse
-%top5001(1.5e3,2e-2,0.5,0.3,false,2,1, [],1/20,566,1e-2,'fig5c',1.025,5,false); %2D medium
-%top5001(3e3  ,2e-2,0.5,0.3,false,2,1, [],1/20,800,1e-2,'fig5d',1.025,5,false); %2D fine
-%top5001(nan ,2e-2 ,0.2,0.3,true ,2,0.5,0.25,1/50,566,1e-3,'fig9a',1.025,false,2); %3D fixed
-%top5001(1.5e3 ,2e-2 ,0.2,0.3,true ,2,0.5,0.25,1/10,400,1e-3,'fig7a',1.025,5,2); %3D coarse
-%top5001(round(3e3*sqrt(2)) ,2e-2 ,0.2,0.3,true ,2,0.5,0.25,1/10,566,1e-3,'fig7b',1.025,5,2); %3D medium
-%top5001(1.2e4 ,2e-2 ,0.2,0.3,true ,2,0.5,0.25,1/10,800,1e-3,'fig7c',1.025,5,2); %3D fine
-%top5001(nan ,2e-2 ,0.1,0.3,2    ,2,0.5,0.25,1/50,566,1e-3,'fig9b',1.025,false,2); %3Da fixed
-%top5001(2e3 ,2e-2 ,0.1,0.3,2    ,2,0.5,0.25,1/10,400,1e-3,'fig8a',1.025,5,2); %3Da coarse
+%top5001(7.5e2 ,2e-2,0.5 ,0.3,false,2,1, [],1/20,400,1e-2,'fig5b',1.025,5,false); %2D coarse
+%top5001(1.5e3 ,2e-2,0.5 ,0.3,false,2,1, [],1/20,566,1e-2,'fig5c',1.025,5,false); %2D medium
+%top5001(3e3   ,2e-2,0.5 ,0.3,false,2,1, [],1/20,800,1e-2,'fig5d',1.025,5,false); %2D fine
+%top5001(nan   ,2e-2,0.2 ,0.3,true ,2,0.5,0.25,1/50,566,1e-3,'fig9a',1.025,false,2); %3D fixed
+%top5001(1.5e3 ,2e-2,0.2 ,0.3,true ,2,0.5,0.25,1/10,400,1e-3,'fig7a',1.025,5,2); %3D coarse
+%top5001(round(3e3*sqrt(2)) ,2e-2  ,0.2,0.3,true ,2,0.5,0.25,1/10,566,1e-3,'fig7b',1.025,5,2); %3D medium
+%top5001(1.2e4 ,2e-2,0.2 ,0.3,true ,2,0.5,0.25,1/10,800,1e-3,'fig7c',1.025,5,2); %3D fine
+%top5001(nan   ,2e-2,0.1 ,0.3,2    ,2,0.5,0.25,1/50,566,1e-3,'fig9b',1.025,false,2); %3Da fixed
+%top5001(2e3   ,2e-2,0.1 ,0.3,2    ,2,0.5,0.25,1/10,400,1e-3,'fig8a',1.025,5,2); %3Da coarse
 %top5001(round(4e3*sqrt(2)) ,2e-2,0.1,0.3,2    ,2,0.5,0.25,1/10,566,1e-3,'fig8b',1.025,5,2); %3Da medium
-%top5001(1.6e4 ,2e-2 ,0.1,0.3,2  ,2,0.5,0.25,1/10,800,1e-3,'fig8c',1.025,5,2); %3Da fine
-%top5001(4e4 ,2e-3 ,0.01,0.3,2   ,2,0.5,0.25,1/10,800,1e-4,'fig9c',1.025,5,2); %low fraction
-%top5001(3e3 ,5e-3 ,0.1,0.3,true ,2,0.5,0.25,1/10,400,1e-3,'fig12a',1.025,5,2); %3Db coarse
+%top5001(1.6e4 ,2e-2,0.1 ,0.3,2    ,2,0.5,0.25,1/10,800,1e-3,'fig8c',1.025,5,2); %3Da fine
+%top5001(4e4   ,2e-3,0.01,0.3,2    ,2,0.5,0.25,1/10,800,1e-4,'fig9c',1.025,5,2); %low fraction
+%top5001(3e3   ,5e-3,0.1 ,0.3,true ,2,0.5,0.25,1/10,400,1e-3,'fig12a',1.025,5,2); %3Db coarse
 %top5001(round(6e3*sqrt(2)) ,5e-3 ,0.1,0.3,true ,2,0.5,0.25,1/10,566,1e-3,'fig12b',1.025,5,2); %3Db medium
 %top5001(2.4e3 ,5e-3 ,0.1,0.3,true ,2,0.5,0.25,1/10,800,1e-3,'fig12c',1.025,5,2); %3Db fine
 
@@ -301,6 +299,13 @@ Nmetric = metric_uniform(xy, [1/N 1/N 1/N]);
 %trimesh(bndmesh.fac,xy(:,1),xy(:,2),xy(:,3))
 
 function ND = get_ND(tri,rho,dem)
+%compute non-discreteness, int(4*rho*(1 - rho)*dx)/int(dx)
+%%% INPUT %%%
+%tri         : Element list, N x 4, where N is the number of elements
+%rho         : nodal or elementwise rho
+%dem         : element determinants (two times the volume in 2D and 6 times in 3D)
+%%% OUTPUT %%%
+%ND          : non-dicsreteness value
 rho_ = rho(tri);
 if(size(tri,2) == 3)
 ND = 4*sum((mean(rho_,2)-sum(rho_(:,[1 2 3 1 2 3]).*rho_(:,[1 2 3 2 3 1])/6,2)).*dem)/sum(dem);
@@ -318,6 +323,7 @@ xy = [xy; xy(not(Ir),:).*refle];
 if nargin == 4
  rho = [rho; rho(not(Ir))];
 end;
+
 
 function [tri,xy] = export_stl(tri,xy,c,cutv,flname)
 %%% exports the volume satisfying cutv < c
@@ -550,6 +556,7 @@ nd2tri = inv_table(tri);
 
 
 function [fac,fac2tri,tri2fac,faca,faca2tri,tri2faca,faca2fac,edg,edga,edga2edg,edg2tri,tri2edg,tri2edga,edga2tri,fac2edg,edg2fac,edga2faca,faca2edga,faca2edg,fac2edga,fac2tri2,nd2fac,nd2edg,nd2tri] = bks_all3D(tri);
+
 %gen faces
 faca = [tri(:,1) tri(:,2) tri(:,4); ...
         tri(:,2) tri(:,1) tri(:,3); ...
@@ -626,7 +633,7 @@ edg2tri = rpval2M(edgs,tris); edg2tri = rpval2M_clean(edg2tri);
 edga2edg = zeros(size(edga,1),1);
 edga2edg(Ise(de))  = 1:size(edg,1);
 edga2edg(Ise(ade)) = de2(ade); %find(de2);
-% gen tri2edga, tri2edg
+% gen tri2edga, tri2edg (12 34 24 13 14 23)
 tri2edga = reshape([1:size(tri,1)*12]',size(tri,1),12);
 tri2edg = reshape(edga2edg(tri2edga(repmat([true false true false true true false false true false true false],size(tri,1),1))),size(tri,1),6);
 %tri2edg = sort(edga2edg(tri2edga)');
@@ -2830,6 +2837,26 @@ if size(eigR,2) == 4 || size(eigR,2) == 9 %rotation
 	end;
 	end;
 	end;
+elseif size(eigL_,2) == size(eigR,2)
+  out = zeros(size(eigL_));
+  if size(eigL_,2)==3
+	inds = [1 2;
+	        2 3];
+	else %3D
+	inds = [1 2 4;
+	        2 3 5;
+	        4 5 6];
+	end;
+  for ii=1:size(inds,1)
+	for jj=1:size(inds,1)
+	for mm=1:size(inds,1)
+   if ii<mm
+			continue
+	 end;
+   out(:,inds(ii,mm)) = out(:,inds(ii,mm)) + eigR(:,inds(ii,jj)).*eigL_(:,inds(jj,mm));
+	end;
+	end;
+	end;
 else %size(eigR,2) == 3 || size(eigR,2) == 6, coord transform
 	if size(eigR,2)==3
 	inds = [1 2;
@@ -3437,9 +3464,9 @@ function [quality,c,wght1] = elem_qual(tri,xy,Nmetric,options,nvec)
 %options.qualM == 11 frenchy
 %options.qualM == 12 Pascal
 %options.qualM == 13 Pascal sq (real)
+%options.qualM == 14 IMR26
+%options.qualM == 15 orthogonality
 %opions.qualP   > 0  angle functional
-
-
 
 if nargin == 5 && size(tri,2) ~= 2 %we wont bother calculating quality of inverted elements
   quality = repmat(-1,size(tri,1),1);
@@ -3478,7 +3505,7 @@ else
    quality = elem_angle(tri,xy,options,options);
    return;
   end;
- if options.qualM == 14
+ if options.qualM == 15
    quality = orth_func(tri,xy,Nmetric,options);
  elseif options.qualM == 1 || 7 < options.qualM 
    quality = vassilevski(tri,xy,Nmetric,options);
@@ -3508,7 +3535,7 @@ elseif options.qualM == 12
 quality = area./mean(L,2).^2; 
 elseif options.qualM == 13
 quality = sign(area).*(area./mean(L,2).^2).^2;
-elseif options.qualM == 9 || options.qualM == 8 || options.qualM == 11 
+elseif options.qualM == 9 || options.qualM == 8 || options.qualM == 11 || options.qualM == 14
 quality = area./mean(L.^2,2);
 end;
 else %3D
@@ -3529,11 +3556,13 @@ else %3D
          quality = sign(area).*(area./mean(L,2).^3).^2;
         elseif options.qualM == 11
          quality = area./mean(L.^2,2).^(3/2); %frenchy
+        elseif options.qualM == 14
+         quality = area.^(2./3.)./mean(L.^2,2); %IMR26
         elseif options.qualM == 8
        	%quality = area./mean(L,2).^3; 
        	%quality = area./mean(L,2)./mean(L2,2); 
        	quality = area.^2./mean(L.^2,2).^3; 
-        else %options.qualM == 9
+        elseif options.qualM == 9
         %quality = area./mean(L,2).^3.*myf(mean(L2,2)); 
         quality = area./sqrt(mean(L.^2,2).*mean(L2.^2,2));
         end;
@@ -3574,7 +3603,7 @@ if size(tri,2) == 3
 	vals = [L(:,1) H(:,1) L(:,2) H(:,2) L(:,3) H(:,3)];
 else
 	[Ibad, area, xy1I, xy2I, xy3I, v1, v2, xy4I, v3] = tri_in_metric_space(tri,xy,Nmetric,options);
-	L = sqrt([sum(v1.^2,2) sum(v2.^2,2) sum(v3.^2,2) sum((v1-v2).^2,2) sum((v1-v3).^2,2) sum((v2-v3).^2,2)]); %(12,13,14,23,24,34)
+	L = sqrt([sum(v1.^2,2) sum(v2.^2,2) sum(v3.^2,2) sum((v1-v2).^2,2) sum((v1-v3).^2,2) sum((v2-v3).^2,2)]);
 	[areaA1,H1] = gen_crosspro(xy1I,xy2I,xy3I,xy4I);
 	[areaA2,H2] = gen_crosspro(xy4I,xy2I,xy3I,xy1I);
 	[areaA3,H3] = gen_crosspro(xy1I,xy4I,xy3I,xy2I);
@@ -3880,6 +3909,16 @@ end;
 
 
 function [X,dem] = fem_getX(tri,xy)
+% calculate the derivatives of linear basis functions
+%%% INPUT %%%
+%tri        : element list, N x 3 or N x 4 (2D or 3D), where N is the number of elements
+%xy         : node coordinates, M x 2 or M x 3 (2D or 3D), where M is the number of nodes
+
+%%% OUTPUT %%%
+%X          : derivatives, X(i,j+dim*(k-1)) is the derivative of the derivative in the 
+%             j'th dimension of the k'th basis function in the i'th element
+%dem        : is the element determinants (double areas in 2D and six times the volume in 3D)
+
 dim = size(xy,2);
 tris = size(tri,1);
 Isumdim = tris*dim;
@@ -3922,6 +3961,7 @@ end;
 end;
 end;
 
+%
 function u = fem_hooke(tri,xy,bndmesh,gamma,Emin,nu,simpP,bcs,X)
 %for a 2D input mesh the following problem is solved
 %inner(sym(grad(v)),E/(1-nu^2)*(sym(grad(u)) + nu*Identity(2)*div(u)))*dx == u*dx + dot(dot(sigma_load,n),v)*ds (FEniCS notation), 
@@ -3965,9 +4005,12 @@ if dim==2
 else
  demE = demE/(1+nu)/(1-2*nu);
 end;	
-i0 = 0; C = zeros(size(tri,1),(dim+1)*(dim+1)*((dim==2)*6+(dim==3)*12)); R = C; S = C;
+i0 = 0; C = zeros(size(tri,1),(dim+1)^2*dim^2); R = C; S = C;
 for ii=1:dim %u(i)
 for jj=1:dim %u_test(j)
+for oo=1:dim+1 %innerit u
+for pp=1:dim+1 %innerit u_test
+X_ = 0;
 for mm=1:dim %grad(u,x[m])
 for nn=1:dim %grad(u_test,x[n])
 if(ii==jj && mm==nn && ii==mm) %grad(u(i)
@@ -3983,23 +4026,21 @@ elseif((ii==nn && jj==mm) || (ii==jj && mm==nn && ii~=mm)) %(ii~=mm && jj~=nn)
   K = (1.-nu)/2;
  else%if numel(unique([ii jj mm nn])) == 2
   K = (1.-2.*nu)/2.;
- %else
- % continue;
+%else
+%  continue;
  end;
 else
  continue;
 end;
-for oo=1:dim+1 %innerit u
-for pp=1:dim+1 %innerit u_test
-X_ = X(:,dim*(oo-1)+mm).*X(:,dim*(pp-1)+nn).*demE*facts(4,dim)*K;
+X_ = X_ + X(:,dim*(oo-1)+mm).*X(:,dim*(pp-1)+nn)*K;
+end;%nn
+end;%mm
 i0 = i0 + 1;
 R(:,i0) = dim*(tri(:,oo)-1)+ii;
 C(:,i0) = dim*(tri(:,pp)-1)+jj;
-S(:,i0) = X_;
+S(:,i0) = X_.*demE*facts(4,dim);
 end;%pp
 end;%oo
-end;%nn
-end;%mm
 end;%jj
 end;%ii
 if dim==2
@@ -4017,7 +4058,7 @@ nd2fac = inv_table(fac); bndfac2fac = bks_bndedg2edg(fac,nd2fac,bndmesh.fac);
 [C2,R_] = find(tri(fac2tri(bndfac2fac,1),:)' == repmat(bndmesh.fac(:,2)',4,1));
 [C3,R_] = find(tri(fac2tri(bndfac2fac,1),:)' == repmat(bndmesh.fac(:,3)',4,1));
 I = or(or(and(C1==1,or(or(and(C2==2,C3==3),and(C2==3,C3==4)),and(C2==4,C3==2))), ...
-          and(C1==2,or(or(and(C2==3,C2==1),and(C2==4,C3==3)),and(C2==1,C3==4)))), ...
+          and(C1==2,or(or(and(C2==3,C3==1),and(C2==4,C3==3)),and(C2==1,C3==4)))), ...
        or(and(C1==3,or(or(and(C2==1,C3==2),and(C2==2,C3==4)),and(C2==4,C3==1))), ...
           and(C1==4,or(or(and(C2==3,C3==2),and(C2==1,C3==3)),and(C2==2,C3==1)))));
 nvec = cross(xy(bndmesh.fac(:,2),:)-xy(bndmesh.fac(:,1),:),xy(bndmesh.fac(:,3),:)-xy(bndmesh.fac(:,1),:),2);
@@ -5060,20 +5101,29 @@ if numel(N) == 1
  N = repmat(N,1,3);
 end;
 if ustruct ~= 0
-x = rand(1,N^3); y = rand(1,N^3); z = rand(1,N^3);
+x = rand(1,prod(N)); y = rand(1,prod(N)); z = rand(1,prod(N));
 %add edges
 x = [x 0 0 0 0 1 1 1 1];
 y = [y 0 0 1 1 0 0 1 1];
 z = [z 0 1 0 1 0 1 0 1];
-x = [x rand(1,(N-1)*4)];
-y = [y ones(1,N-1) ones(1,N-1)  zeros(1,N-1) zeros(1,N-1)];
-z = [z ones(1,N-1) zeros(1,N-1) zeros(1,N-1) ones(1,N-1)];
-x = [x ones(1,N-1) ones(1,N-1)  zeros(1,N-1) zeros(1,N-1)];
-y = [y rand(1,(N-1)*4)];
-z = [z ones(1,N-1) zeros(1,N-1) zeros(1,N-1) ones(1,N-1)];
-x = [x ones(1,N-1) ones(1,N-1)  zeros(1,N-1) zeros(1,N-1)]';
-y = [y ones(1,N-1) zeros(1,N-1) zeros(1,N-1) ones(1,N-1)]';
-z = [z rand(1,(N-1)*4)]';
+x = [x rand(1,(N(1)-1)*4)];
+y = [y ones(1,N(1)-1) ones(1,N(1)-1)  zeros(1,N(1)-1) zeros(1,N(1)-1)];
+z = [z ones(1,N(1)-1) zeros(1,N(1)-1) zeros(1,N(1)-1) ones(1,N(1)-1)];
+x = [x ones(1,N(2)-1) ones(1,N(2)-1)  zeros(1,N(2)-1) zeros(1,N(2)-1)];
+y = [y rand(1,(N(2)-1)*4)];
+z = [z ones(1,N(2)-1) zeros(1,N(2)-1) zeros(1,N(2)-1) ones(1,N(2)-1)];
+x = [x ones(1,N(3)-1) ones(1,N(3)-1)  zeros(1,N(3)-1) zeros(1,N(3)-1)];
+y = [y ones(1,N(3)-1) zeros(1,N(3)-1) zeros(1,N(3)-1) ones(1,N(3)-1)];
+z = [z rand(1,(N(3)-1)*4)];
+x = [x zeros(1,N(2)*N(3)-1) ones(1,N(2)*N(3)-1)];
+y = [y rand(1,(N(2)*N(3)-1)*2)];
+z = [z rand(1,(N(2)*N(3)-1)*2)];
+x = [x rand(1,(N(1)*N(3)-1)*2)];
+y = [y zeros(1,N(1)*N(3)-1) ones(1,N(1)*N(3)-1)];
+z = [z rand(1,(N(1)*N(3)-1)*2)];
+x = [x rand(1,(N(1)*N(2)-1)*2)]';
+y = [y rand(1,(N(1)*N(2)-1)*2)]';
+z = [z zeros(1,N(1)*N(2)-1) ones(1,N(1)*N(2)-1)]';
 if ustruct == 2
 %%add faces
 %[XYZ,YZX] = meshgrid(1/N:1/N:1-1/N); XYZ = repmat(XYZ(:),2,1); YZX = repmat(YZX(:),2,1); XYZ0 = [zeros((N-1)^2,1); ones((N-1)^2,1)];
@@ -5082,7 +5132,7 @@ x = [x; XYZ0; YZX; XYZ];
 y = [y; XYZ; XYZ0; YZX]; 
 z = [z; YZX; XYZ; XYZ0];
 end;
-tri = delaunay3(x,y,z);
+tri = delaunay(x,y,z);
 tri = elem_fix(tri,[x y z]);
 else
 [x,y,z] = meshgrid(0:1/N(1):1,0:1/N(2):1,0:1/N(3):1); x=x(:); y=y(:); z=z(:);
@@ -5189,7 +5239,12 @@ eigL = reshape(max(abs(eigL),1e-12),size(eigL));
 detn = prod(eigL,2);
 hesn = analyt_prod(analyt_fulleig(eigL.^0.5),eigR);
 exponent = -0.5/(2.*pnorm + size(xy,2));
+if 0 < eta 
 Nmetric = 1/sqrt(eta)*repmat(detn.^exponent,1,size(hesn,2)).*hesn;
+else
+[I_,dem,demN] = elem_inv(tri,xy);
+Nmetric = metric_scale(repmat(detn.^exponent,1,size(hesn,2)).*hesn,-eta,demN);
+end;
 function mmI = metric_avg(edg,Nmetric,options);
 if options.log_m_add
  if size(edg,2) == 2
