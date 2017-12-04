@@ -15,9 +15,9 @@ The same technology can be used for 2D/3D minimum compliance in linear elasticit
 
 .. code:: MATLAB
 
-   top5001(2e-2,1e-2,0.5,0.3,false,2,0.5,[]  ,1/20,200,1e-3,'fig1',1.025,5);
+   top5001(7.5e2 ,2e-2,0.5 ,0.3,false,2,1, [],1/20,400   ,1e-2,'fig5b',1.025,5,false);
 
-   top5001(4e-2,5e-3,0.1,0.3,1   , 2,0.5,0.25,1/10,400,1e-3,'fig2',1.025,5);
+   top5001(2e3   ,2e-2,0.1 ,0.3,2    ,2,0.5,0.25,1/10,400,1e-3,'fig8a',1.025,5,2);
 
 For more details visit the IMR26 paper: https://drive.google.com/open?id=18DRlj6_-MzhOid0BlXC-C-sJvQAm5KnF (note that 3D objective oscillations have been fixed)
 
