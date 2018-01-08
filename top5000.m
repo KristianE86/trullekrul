@@ -30,9 +30,9 @@
 %Department of Micro- and Nanotechnology, Technical University of Denmark (DTU)
 %Ørsteds Plads, DK-2800 Kgs. Lyngby
 %top5000(nan,5e-3,0.5,false,[],[],0.1,[],1/600,300,1e-3,pi/5,'fig7a',1,1.025,false)
-%top5000(4e-3,5e-3,0.5,false,[],[],0.1,[],1/20,424,1e-3,pi/5,'fig7b')
+%top5000(4e-3,5e-3,0.5,false,[],[],0.1,[],1/20,212,1e-3,pi/5,'fig7b')
 %top5000(2e-3,5e-3,0.5,false,[],[],0.1,[],1/20,300,1e-3,pi/5,'fig7c')
-%top5000(1e-3,5e-3,0.5,false,[],[],0.1,[],1/20,300,1e-3,pi/5,'fig7d')
+%top5000(1e-3,5e-3,0.5,false,[],[],0.1,[],1/20,424,1e-3,pi/5,'fig7d')
 %top5000(0.8,7e-2,0.1,true,0.75,0.7,0.5,1.5,1/10,200,1e-3,pi/4,'fig9a')
 %top5000(0.4,7e-2,0.1,true,0.75,0.7,0.5,1.5,1/10,283,1e-3,pi/4,'fig9b')
 %top5000(0.2,7e-2,0.1,true,0.75,0.7,0.5,1.5,1/10,400,1e-3,pi/4,'fig9c')
