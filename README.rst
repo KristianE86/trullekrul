@@ -21,3 +21,15 @@ The same technology can be used for 2D/3D minimum compliance in linear elasticit
 
 For more details visit the IMR26 paper: https://drive.google.com/open?id=18DRlj6_-MzhOid0BlXC-C-sJvQAm5KnF . Note that the severe objective oscillations reported for 3D in the original IMR26 paper have been fixed.
 
+Finally the technology can be used in Stokes flow with Darcy numbers down to 1e-9, see https://drive.google.com/file/d/1bxHijGOlWnzOBDGfP1Sx5Xk03C9_iy5s/view?usp=sharing
+
+..code:: MALTAB
+
+   top5002(-1e3, 0.8  ,1e9, [1 1 0.05 0.05       ], 0.01, 141, 'No2',1);
+   
+   top5002(-5e3, 0.5,  1e9, [2 3                 ], 0.01, 1e4, 'No9',5);
+   
+   top5002(-1e4, 0.1,  1e7, [                    ], 0.01, 1e3, 'No15',3);
+
+
+
