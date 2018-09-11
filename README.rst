@@ -25,11 +25,11 @@ Finally the technology can be used in Stokes flow with Darcy numbers down to 1e-
 
 ..code:: MALTAB
 
-   top5002(-1e3, 0.8  ,1e9, [1 1 0.05 0.05       ], 0.01, 141, 'No2',1);
+    top5002(-1e3, 0.8  ,1e9, [1 1 0.05 0.05       ], 0.01, 141, 'No2',1);
    
-   top5002(-5e3, 0.5,  1e9, [2 3                 ], 0.01, 1e4, 'No9',5);
+    top5002(-5e3, 0.5,  1e9, [2 3                 ], 0.01, 1e4, 'No9',5);
    
-   top5002(-1e4, 0.1,  1e7, [                    ], 0.01, 1e3, 'No15',3);
+    top5002(-1e4, 0.1,  1e7, [                    ], 0.01, 1e3, 'No15',3);
 
 
 
