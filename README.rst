@@ -5,9 +5,9 @@ Topology optimization and anisotropic mesh adaptation for optimal heat conductio
 
 .. code:: MATLAB
 
-   top5000(2e-3,5e-3,0.5,false,[],[],0.1,[],1/20,300,1e-3,pi/5,'fig7c')
+   top5000(2e-3,5e-3,0.5,false,[],[],0.1,[],1/20,300,1e-3,pi/5,'fig7c');
 
-   top5000(0.4,7e-2,0.1,true,0.75,0.7,0.5,1.5,1/10,283,1e-3,pi/4,'fig9b')
+   top5000(0.4,7e-2,0.1,true,0.75,0.7,0.5,1.5,1/10,283,1e-3,pi/4,'fig9b'):
 
 See the WCSMO12 conference proceeding for a detailed description: https://drive.google.com/file/d/0B9uPpc2f4SZ5TnBjclJFaERSQWs
 
@@ -23,13 +23,12 @@ For more details visit the IMR26 paper: https://drive.google.com/open?id=18DRlj6
 
 Finally the technology can be used in Stokes flow with Darcy numbers down to 1e-9, see https://drive.google.com/file/d/1bxHijGOlWnzOBDGfP1Sx5Xk03C9_iy5s/view?usp=sharing
 
-..code:: MALTAB
+.. code:: MATLAB
 
     top5002(-1e3, 0.8  ,1e9, [1 1 0.05 0.05       ], 0.01, 141, 'No2',1);
-   
+
     top5002(-5e3, 0.5,  1e9, [2 3                 ], 0.01, 1e4, 'No9',5);
-   
+
     top5002(-1e4, 0.1,  1e7, [                    ], 0.01, 1e3, 'No15',3);
 
-
-
+Extremely low volume fractions are also trivial to handle.
