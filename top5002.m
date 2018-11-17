@@ -113,7 +113,12 @@ Nmetric = metric_uniform(xy, repmat(meshszI,1,2+do3D)); options.innerit = 40;
 X = fem_getX(tri,xy); [I,dem,demN] = elem_inv(tri,xy);
 simpF = (1/q)^(2./(itertotal-20*frzz20	)); simpF = simpF^(1.+or(prob==3,prob==5)); 
 %export initial design
-system(['rm -rf ' outnm ' && mkdir ' outnm]); 
+if isunix
+    system(['rm -rf ' outnm ' && mkdir ' outnm]); 
+else
+    system(['rmdir ' outnm]); 
+    system(['mkdir ' outnm]); 
+end;
 gamma = ones(size(demN))*Tvol;
 if prob <= 2 || 5 <= prob
  gamma(tri(bndmesh.triID==0,:)) = 1.; 
