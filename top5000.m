@@ -88,7 +88,12 @@ end;
 X = fem_getX(tri,xy); [I,dem,demN] = elem_inv(tri,xy);
 simpF = ((3+do3D)/simpP)^(2./(itertotal-20*frzz20	));
 %export initial design
-system(['rm -rf ' outnm ' && mkdir ' outnm]); 
+if isunix
+    system(['rm -rf ' outnm ' && mkdir ' outnm]); 
+else
+    system(['rmdir ' outnm]); 
+    system(['mkdir ' outnm]); 
+end;
 rho = ones(size(demN))*Tvol; flname = [outnm '/rho.pvd']; export_vtk_binary(flname,tri,xy,rho,1,{'rho'}); 
 sclr = zeros(itertotal,17);
 options.verbose = -1; 
