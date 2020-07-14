@@ -5091,7 +5091,7 @@ else %==3
 end;
 output6 = sprintf('%d ',size(tri,2):size(tri,2):numel(tri));
 output8 = sprintf('%d ',(5+5*(size(xy,2)==3))*ones(size(tri,1),1));
-output3 = '</DataArray>\n</Points>\n<Cells>\n<DataArray  type="UInt32"  Name="connectivity"  format="ascii">';
+output3 = '</DataArray>\n</Points>\n<Cells>\n<DataArray  type="Int32"  Name="connectivity"  format="ascii">';
 if size(sclrvr,1) == size(xy,1)
 output9 = '</DataArray>\n</Cells>\n<PointData>\n';
 output10 = [];
@@ -5107,7 +5107,65 @@ for jj=1:size(sclrvr,2)
 end;
 output11 = '</CellData>\n</Piece>\n</UnstructuredGrid>\n</VTKFile>';	
 end;
-output5 = '</DataArray>\n<DataArray  type="UInt32"  Name="offsets"  format="ascii">';
+output5 = '</DataArray>\n<DataArray  type="Int32"  Name="offsets"  format="ascii">';
+output7 = '</DataArray>\n<DataArray  type="UInt8"  Name="types"  format="ascii">';
+output = [output1 output2 output3 output4 output5 output6 output7 output8 output9 output10 output11];
+fwrite(fid,sprintf(output),'char');
+function [] = export_vtk(flname,tri,xy,sclrvr,ii,vrnm)
+%%% INPUT %%%
+%flname   : string specifying the output pvd filename
+%tri      : element list, N x 3 or N x 4 (2D or 3D), where N is the number of elements
+%xy       : node coordinates, M x 2 or M x 3 (2D or 3D), where M is the number of elements
+%sclrvr   : scalar variables, M x Q or N x Q (node or element wise values), where Q is the number of variables
+%ii       : the output number in the series
+%vrnm     : the names of the scalar variables
+tmp = pwd;
+if tmp(1) == '/'
+ mslsh = '/';
+else
+ mslsh = '\';
+end;
+fid = fopen(flname,'w');
+output1 = '<?xml version="1.0"?>\n<VTKFile type="Collection" version="0.1">\n  <Collection>\n';
+output2 = '';
+flstrt = max([0 find(flname==mslsh)])+1;
+for i=1:ii
+output2 = [output2 sprintf('    <DataSet timestep="%d" part="0" file="%s%d.vtu" />\n', i-1, flname(flstrt:end-4), i-1)];
+end;
+output3 = '  </Collection>\n</VTKFile>';
+output = [output1 output2 output3];
+fwrite(fid,sprintf(output),'char');
+fclose(fid);
+
+tabchar = '  ';
+fid = fopen(sprintf('%s%d.vtu',flname(1:end-4),ii-1),'w');
+output1 = sprintf('<?xml version="1.0"?>\\n<VTKFile type="UnstructuredGrid"  version="0.1"  >\\n<UnstructuredGrid>\\n<Piece  NumberOfPoints="%d" NumberOfCells="%d">\\n<Points>\\n<DataArray  type="Float64"  NumberOfComponents="%d"  format="ascii">',size(xy,1),size(tri,1),3);
+if size(xy,2) == 2
+ output2 = sprintf(['%.12e %.12e %.12e' tabchar],[xy zeros(size(xy,1),1)]');
+ output4 = sprintf(['%d %d %d' tabchar],tri'-1); 
+else %==3
+ output2 = sprintf(['%.12e %.12e %.12e' tabchar],xy');
+ output4 = sprintf(['%d %d %d %d' tabchar],tri'-1);
+end;
+output6 = sprintf('%d ',size(tri,2):size(tri,2):numel(tri));
+output8 = sprintf('%d ',(5+5*(size(xy,2)==3))*ones(size(tri,1),1));
+output3 = '</DataArray>\n</Points>\n<Cells>\n<DataArray  type="Int32"  Name="connectivity"  format="ascii">';
+if size(sclrvr,1) == size(xy,1)
+output9 = '</DataArray>\n</Cells>\n<PointData>\n';
+output10 = [];
+for jj=1:size(sclrvr,2)
+ output10 = [output10 sprintf('<DataArray  type="Float64"  Name="%s"  format="ascii">',vrnm{jj}) sprintf(['%.12e' tabchar], sclrvr(:,jj)) '</DataArray>\n'];
+end;
+output11 = '</PointData>\n</Piece>\n</UnstructuredGrid>\n</VTKFile>';
+else
+output9 = '</DataArray>\n</Cells>\n<CellData>\n';
+output10 = [];
+for jj=1:size(sclrvr,2)
+ output10 = [output10 sprintf('<DataArray  type="Float64"  Name="%s"  format="ascii">',vrnm{jj}) sprintf(['%.12e' tabchar], sclrvr(:,jj)) '</DataArray>\n'];
+end;
+output11 = '</CellData>\n</Piece>\n</UnstructuredGrid>\n</VTKFile>';	
+end;
+output5 = '</DataArray>\n<DataArray  type="Int32"  Name="offsets"  format="ascii">';
 output7 = '</DataArray>\n<DataArray  type="UInt8"  Name="types"  format="ascii">';
 output = [output1 output2 output3 output4 output5 output6 output7 output8 output9 output10 output11];
 fwrite(fid,sprintf(output),'char');
@@ -5172,9 +5230,9 @@ end;
 end;
 fwrite(fid,sprintf('<Points>\n<DataArray  type="Float32"  NumberOfComponents="%d"  format="appended" offset="%d"/>',3,offset),'char',ndn);
 offset = offset + size(xy,1)*3*4+4;
-fwrite(fid,sprintf('\n</Points>\n<Cells>\n<DataArray  type="UInt32"  Name="connectivity"  format="appended" offset="%d"/>',offset),'char',ndn);
+fwrite(fid,sprintf('\n</Points>\n<Cells>\n<DataArray  type="Int32"  Name="connectivity"  format="appended" offset="%d"/>',offset),'char',ndn);
 offset = offset + numel(tri)*4+4;
-fwrite(fid,sprintf('\n<DataArray  type="UInt32"  Name="offsets"  format="appended" offset="%d"/>',offset),'char',ndn);
+fwrite(fid,sprintf('\n<DataArray  type="Int32"  Name="offsets"  format="appended" offset="%d"/>',offset),'char',ndn);
 offset = offset + size(tri,1)*4+4;
 fwrite(fid,sprintf('\n<DataArray  type="UInt8"  Name="types"  format="appended" offset="%d"/>',offset),'char',ndn);
 offset = offset + size(tri,1)+4;
@@ -5193,13 +5251,14 @@ else %==3
  fwrite(fid,reshape(xy',numel(xy),1),'float32',ndn);
 end;
 fwrite(fid,numel(tri)*4,tmpdt,ndn);
-fwrite(fid,reshape(tri'-1,numel(tri),1),'uint32',ndn);
+fwrite(fid,reshape(tri'-1,numel(tri),1),'int32',ndn);
 fwrite(fid,size(tri,1)*4,tmpdt,ndn);
-fwrite(fid,size(tri,2):size(tri,2):numel(tri),'uint32',ndn);
+fwrite(fid,size(tri,2):size(tri,2):numel(tri),'int32',ndn);
 fwrite(fid,size(tri,1),tmpdt,ndn);
 fwrite(fid,(5+5*(size(xy,2)==3))*ones(size(tri,1),1),'uint8',ndn);
 fwrite(fid,sprintf('\n  </AppendedData>\n</VTKFile>'),'char',ndn);	
 fclose(fid);
+
 function [xy,tri,bndmesh,options,geomfunc] = mesh_rect(N,options,ustruct)
 if nargin ~= 2
 x = rand(1,N*N);
