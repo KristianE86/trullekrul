@@ -4683,7 +4683,7 @@ b = full(sparse(Rb(:),Cb(:),Sb(:),size(xy,1),1));
 
 %BCs
 [triU,avgU] = fem_triU(U(:,1),dofmap); myEPS = 1e3*eps;
-flowrate = sum(avgU(1,:)'.*dem_)*facts(4,2)/range(xy(:,1));
+flowrate = sum(avgU(1,:)'.*dem_)*facts(4,2)/(max(xy(:,1))-min(xy(:,1)));
 edgxy = (xy(bndmesh.edg(:,1),:) + xy(bndmesh.edg(:,2),:))/2;
 upperI = bndmesh.edg(max(xy(:,2)) - myEPS < edgxy(:,2),:);
 lowerI = bndmesh.edg(edgxy(:,2) < min(xy(:,2)) + myEPS,:);
@@ -5633,7 +5633,7 @@ else %==3
 end;
 output6 = sprintf('%d ',size(tri,2):size(tri,2):numel(tri));
 output8 = sprintf('%d ',(5+5*(size(xy,2)==3))*ones(size(tri,1),1));
-output3 = '</DataArray>\n</Points>\n<Cells>\n<DataArray  type="UInt32"  Name="connectivity"  format="ascii">';
+output3 = '</DataArray>\n</Points>\n<Cells>\n<DataArray  type="Int32"  Name="connectivity"  format="ascii">';
 if size(sclrvr,1) == size(xy,1)
 output9 = '</DataArray>\n</Cells>\n<PointData>\n';
 output10 = [];
@@ -5649,7 +5649,7 @@ for jj=1:size(sclrvr,2)
 end;
 output11 = '</CellData>\n</Piece>\n</UnstructuredGrid>\n</VTKFile>';	
 end;
-output5 = '</DataArray>\n<DataArray  type="UInt32"  Name="offsets"  format="ascii">';
+output5 = '</DataArray>\n<DataArray  type="Int32"  Name="offsets"  format="ascii">';
 output7 = '</DataArray>\n<DataArray  type="UInt8"  Name="types"  format="ascii">';
 output = [output1 output2 output3 output4 output5 output6 output7 output8 output9 output10 output11];
 fwrite(fid,sprintf(output),'char');
@@ -5714,9 +5714,9 @@ end;
 end;
 fwrite(fid,sprintf('<Points>\n<DataArray  type="Float32"  NumberOfComponents="%d"  format="appended" offset="%d"/>',3,offset),'char',ndn);
 offset = offset + size(xy,1)*3*4+4;
-fwrite(fid,sprintf('\n</Points>\n<Cells>\n<DataArray  type="UInt32"  Name="connectivity"  format="appended" offset="%d"/>',offset),'char',ndn);
+fwrite(fid,sprintf('\n</Points>\n<Cells>\n<DataArray  type="Int32"  Name="connectivity"  format="appended" offset="%d"/>',offset),'char',ndn);
 offset = offset + numel(tri)*4+4;
-fwrite(fid,sprintf('\n<DataArray  type="UInt32"  Name="offsets"  format="appended" offset="%d"/>',offset),'char',ndn);
+fwrite(fid,sprintf('\n<DataArray  type="Int32"  Name="offsets"  format="appended" offset="%d"/>',offset),'char',ndn);
 offset = offset + size(tri,1)*4+4;
 fwrite(fid,sprintf('\n<DataArray  type="UInt8"  Name="types"  format="appended" offset="%d"/>',offset),'char',ndn);
 offset = offset + size(tri,1)+4;
@@ -5735,9 +5735,9 @@ else %==3
  fwrite(fid,reshape(xy',numel(xy),1),'float32',ndn);
 end;
 fwrite(fid,numel(tri)*4,tmpdt,ndn);
-fwrite(fid,reshape(tri'-1,numel(tri),1),'uint32',ndn);
+fwrite(fid,reshape(tri'-1,numel(tri),1),'int32',ndn);
 fwrite(fid,size(tri,1)*4,tmpdt,ndn);
-fwrite(fid,size(tri,2):size(tri,2):numel(tri),'uint32',ndn);
+fwrite(fid,size(tri,2):size(tri,2):numel(tri),'int32',ndn);
 fwrite(fid,size(tri,1),tmpdt,ndn);
 fwrite(fid,(5+5*(size(xy,2)==3))*ones(size(tri,1),1),'uint8',ndn);
 fwrite(fid,sprintf('\n  </AppendedData>\n</VTKFile>'),'char',ndn);	
