@@ -140,7 +140,7 @@ for ii=1:itertotal
  sclr(ii,4) = get_ND(tri,rho,dem);
  sclr(ii,5) = numel(rho);
  
- export_vtk_binary(flname,tri,xy,[rho T dOdrho./demN],ii+1,{'rho','T','sensitivity'});
+ export_vtk_binary(flname,tri,xy,full([rho T dOdrho./demN]),ii+1,{'rho','T','sensitivity'});
  disp(sprintf('%0d, O = %2.3f, nodes=%d, P=%2.2f, V=%2.2f, C=%2.2f, ND=%0.0f %%',...
  ii,sclr(ii,1),sclr(ii,5),simpP,sclr(ii,2),sclr(ii,3),sclr(ii,4)*100));
  if mod(ii,10) == 0 || ii==itertotal %save every 10 iterations only
@@ -5062,65 +5062,7 @@ function [] = export_vtk(flname,tri,xy,sclrvr,ii,vrnm)
 %ii       : the output number in the series
 %vrnm     : the names of the scalar variables
 tmp = pwd;
-if tmp(1) == '/'
- mslsh = '/';
-else
- mslsh = '\';
-end;
-fid = fopen(flname,'w');
-output1 = '<?xml version="1.0"?>\n<VTKFile type="Collection" version="0.1">\n  <Collection>\n';
-output2 = '';
-flstrt = max([0 find(flname==mslsh)])+1;
-for i=1:ii
-output2 = [output2 sprintf('    <DataSet timestep="%d" part="0" file="%s%d.vtu" />\n', i-1, flname(flstrt:end-4), i-1)];
-end;
-output3 = '  </Collection>\n</VTKFile>';
-output = [output1 output2 output3];
-fwrite(fid,sprintf(output),'char');
-fclose(fid);
-
-tabchar = '  ';
-fid = fopen(sprintf('%s%d.vtu',flname(1:end-4),ii-1),'w');
-output1 = sprintf('<?xml version="1.0"?>\\n<VTKFile type="UnstructuredGrid"  version="0.1"  >\\n<UnstructuredGrid>\\n<Piece  NumberOfPoints="%d" NumberOfCells="%d">\\n<Points>\\n<DataArray  type="Float64"  NumberOfComponents="%d"  format="ascii">',size(xy,1),size(tri,1),3);
-if size(xy,2) == 2
- output2 = sprintf(['%.12e %.12e %.12e' tabchar],[xy zeros(size(xy,1),1)]');
- output4 = sprintf(['%d %d %d' tabchar],tri'-1); 
-else %==3
- output2 = sprintf(['%.12e %.12e %.12e' tabchar],xy');
- output4 = sprintf(['%d %d %d %d' tabchar],tri'-1);
-end;
-output6 = sprintf('%d ',size(tri,2):size(tri,2):numel(tri));
-output8 = sprintf('%d ',(5+5*(size(xy,2)==3))*ones(size(tri,1),1));
-output3 = '</DataArray>\n</Points>\n<Cells>\n<DataArray  type="Int32"  Name="connectivity"  format="ascii">';
-if size(sclrvr,1) == size(xy,1)
-output9 = '</DataArray>\n</Cells>\n<PointData>\n';
-output10 = [];
-for jj=1:size(sclrvr,2)
- output10 = [output10 sprintf('<DataArray  type="Float64"  Name="%s"  format="ascii">',vrnm{jj}) sprintf(['%.12e' tabchar], sclrvr(:,jj)) '</DataArray>\n'];
-end;
-output11 = '</PointData>\n</Piece>\n</UnstructuredGrid>\n</VTKFile>';
-else
-output9 = '</DataArray>\n</Cells>\n<CellData>\n';
-output10 = [];
-for jj=1:size(sclrvr,2)
- output10 = [output10 sprintf('<DataArray  type="Float64"  Name="%s"  format="ascii">',vrnm{jj}) sprintf(['%.12e' tabchar], sclrvr(:,jj)) '</DataArray>\n'];
-end;
-output11 = '</CellData>\n</Piece>\n</UnstructuredGrid>\n</VTKFile>';	
-end;
-output5 = '</DataArray>\n<DataArray  type="Int32"  Name="offsets"  format="ascii">';
-output7 = '</DataArray>\n<DataArray  type="UInt8"  Name="types"  format="ascii">';
-output = [output1 output2 output3 output4 output5 output6 output7 output8 output9 output10 output11];
-fwrite(fid,sprintf(output),'char');
-function [] = export_vtk(flname,tri,xy,sclrvr,ii,vrnm)
-%%% INPUT %%%
-%flname   : string specifying the output pvd filename
-%tri      : element list, N x 3 or N x 4 (2D or 3D), where N is the number of elements
-%xy       : node coordinates, M x 2 or M x 3 (2D or 3D), where M is the number of elements
-%sclrvr   : scalar variables, M x Q or N x Q (node or element wise values), where Q is the number of variables
-%ii       : the output number in the series
-%vrnm     : the names of the scalar variables
-tmp = pwd;
-if tmp(1) == '/'
+if tmp(1) == '/' || strcmp(computer,'PCWIN64')
  mslsh = '/';
 else
  mslsh = '\';
@@ -5186,7 +5128,7 @@ function [] = export_vtk_binary(flname,tri,xy,sclrvr,ii,vrnm)
 %vrnm     : the names of the scalar variables
 ndn = 'l'; %LittleEndian ('b' for BigEndian)
 tmp = pwd; 
-if tmp(1) == '/'
+if tmp(1) == '/' || strcmp(computer,'PCWIN64')
  mslsh = '/';
 else
  mslsh = '\';
