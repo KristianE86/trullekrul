@@ -4935,7 +4935,7 @@ function [] = export_vtk(flname,tri,xy,sclrvr,ii,vrnm)
 %ii       : the output number in the series
 %vrnm     : the names of the scalar variables
 tmp = pwd;
-if tmp(1) == '/'
+if tmp(1) == '/' || strcmp(computer,'PCWIN64')
  mslsh = '/';
 else
  mslsh = '\';
@@ -5001,7 +5001,7 @@ function [] = export_vtk_binary(flname,tri,xy,sclrvr,ii,vrnm)
 %vrnm     : the names of the scalar variables
 ndn = 'l'; %LittleEndian ('b' for BigEndian)
 tmp = pwd; 
-if tmp(1) == '/'
+if tmp(1) == '/' || strcmp(computer,'PCWIN64')
  mslsh = '/';
 else
  mslsh = '\';
