@@ -113,7 +113,7 @@ else
     system(['rmdir ' outnm]); 
     system(['mkdir ' outnm]); 
 end;
-rho = ones(size(demN))*Tvol; flname = [outnm '/rho.pvd']; export_vtk_binary(flname,tri,xy,rho,1,{'rho'}); 
+rho = ones(size(demN))*Tvol; flname = [outnm get_slash() 'rho.pvd']; export_vtk_binary(flname,tri,xy,rho,1,{'rho'}); 
 sclr = zeros(itertotal,17);
 options.verbose = -1; 
 for ii=1:itertotal
@@ -166,9 +166,9 @@ for ii=1:itertotal
  ii,sclr(ii,1),sclr(ii,18),sclr(ii,5),simpP,sclr(ii,2),sclr(ii,3),sclr(ii,4)*100));
  if mod(ii,10) == 0 || ii==itertotal %save every 10 iterations only
   if ii ~= 10
-   system(['rm ' outnm '/sclr.mat']);
+   system(['rm ' outnm  get_slash() 'sclr.mat']);
   end;
-  save([outnm '/sclr.mat'],'sclr','-ascii','-double');
+  save([outnm  get_slash() 'sclr.mat'],'sclr','-ascii','-double');
  end;
  %update simpP
  if simpP < 3.+do3D
@@ -931,15 +931,15 @@ if isfield(options,'forpres')
 	if size(xy,2) == 2
 	i4=i4-1;
 	figure(); trimesh(tri,xy(:,1),xy(:,2),'color','k','marker','none'); xlim([-0.01 1.01]); ylim([-0.01 1.01]); axis('off'); axis('equal'); box('off');  title(intit,'fontsize',32);
-	print([options.forpres sprintf('/%0.0f.png',i4)],'-dpng');
+	print([options.forpres  get_slash() sprintf('%0.0f.png',i4)],'-dpng');
 	close all;
 	else %3D
         if numel(strfind(version,'R2010a'))~=0
             [fac,fac2tri,tri2fac] = bks_all3D(tri);
             trimesh(fac(fac2tri(:,2)==0,:),xy(:,1),xy(:,2),xy(:,3),'edgecolor','k','marker','none'); axis('off'); box('off');
-            title(intit,'fontsize',32); print('-dpng',sprintf('./%s/%0.0f.png',options.forpres,i4));
+            title(intit,'fontsize',32); print('-dpng',sprintf(['.' get_slash() '%s' get_slash() '%0.0f.png'],options.forpres,i4));
         else
-            save([options.forpres sprintf('/%0.0f.mat',i4)],'tri','xy','intit');
+            save([options.forpres  get_slash() sprintf('%0.0f.mat',i4)],'tri','xy','intit');
         end;
 	end;
 end;
@@ -3267,7 +3267,6 @@ for i=3:maxngh
 end;
 
 function [trind,nds,maxngh,Nn] = mk_tcrcls(circles)
-%save for_debug3Da.mat;
 nds = size(circles,3);
 nds_ = size(circles,2);
 nd1 = reshape(repmat(1:size(circles,3),3*size(circles,2),1),size(circles));
@@ -3278,7 +3277,6 @@ edga2 = circles_(reshape([(2:3:3*nds_); (3:3:3*nds_); (1:3:3*nds_)],3*nds_,1),:)
 [edga,I] = sortrows([reshape(nd1,3*nds*nds_,1) edga]);
 %d = and(edga(:,2)~=0,any([edga(1,:) ~= edga(2,:); and(edga(2:end-1,:) ~= edga(3:end,:),edga(2:end-1,:) ~= edga(1:end-2,:)); edga(end,:) ~= edga(end-1,:)],2));
 d = and(edga(:,2)~=0,[any(edga(1,:) ~= edga(2,:),2); and(any(edga(2:end-1,:) ~= edga(3:end,:),2),any(edga(2:end-1,:) ~= edga(1:end-2,:),2)); any(edga(end,:) ~= edga(end-1,:),2)]);
-%save for_debug3D.mat; error('just stop3D');
 edga = edga(d,:);
 Iflp = I2(I(d),1) == 2;
 edga(Iflp,:) = edga(Iflp,[1 3 2]);
@@ -4457,7 +4455,6 @@ if size(xy,2) == 3
 end;
 
 function [newtri,qualityN,badnds,newtriN,badbadnds,newIDs,newedg,newedgN] = prag_coarse(circles,Nmetric,xy,badnds,badIDs,triQtb,NN,options,nvec)
-%save for_debug3.mat; error('just stop');
 badbadnds = zeros(0,1); badnds_start = badnds;
 newtri = zeros(0,3); newtriN = []; qualityN = []; newIDs = []; newedg = zeros(0,2); newedgN = [];
 
@@ -4561,7 +4558,7 @@ if options.area == 0. %curved geometry
 end;
 while true
 while true
-[newtri,newfac_,spheres,badbadnds,newtriN,newIDs,newfacN_,qualityN,badnds,badIDs,NN,ndone] = rm_frnds(spheres,xy,NN,badnds,badIDs,badbadnds,Nmetric,triQtb,newtriN,newIDs,qualityN,newtri,options); %save for_debug3D.mat;
+[newtri,newfac_,spheres,badbadnds,newtriN,newIDs,newfacN_,qualityN,badnds,badIDs,NN,ndone] = rm_frnds(spheres,xy,NN,badnds,badIDs,badbadnds,Nmetric,triQtb,newtriN,newIDs,qualityN,newtri,options);
 newfac = [newfac; newfac_];
 newfacN = [newfacN; newfacN_];
 %if ndone && size(spheres,3) ~= 0
@@ -4575,7 +4572,6 @@ if size(spheres,3) == 0 %nnz(spheres(1,:,:))
 	break;
 end;
 
-%save for_debug3Db.mat;
 %make an edge (and an element)
 I = squeeze(spheres(1,:,:))~=0;
 R_ = repmat(1:size(spheres,3),size(spheres,2),1);
@@ -4718,7 +4714,7 @@ if numel(Rs) ~= 1
 d = [Rs(1:end-1)~=Rs(2:end); true];
 else
 d = true;
-end; %save for_debug3D.mat;
+end;
 nN_ = [0; find(d)]; nN = diff(nN_); nMax = max(nN);
 Rs2R = zeros(max(Rs),1); Rs2R(Rs(d)) = 1:numel(nN);
 C = repmat((1:nMax)',1,numel(nN)); CnN = repmat(nN',nMax,1); I = C <= CnN; 
@@ -4934,12 +4930,7 @@ function [] = export_vtk(flname,tri,xy,sclrvr,ii,vrnm)
 %sclrvr   : scalar variables, M x Q or N x Q (node or element wise values), where Q is the number of variables
 %ii       : the output number in the series
 %vrnm     : the names of the scalar variables
-tmp = pwd;
-if tmp(1) == '/' || strcmp(computer,'PCWIN64')
- mslsh = '/';
-else
- mslsh = '\';
-end;
+mslsh = get_slash();
 fid = fopen(flname,'w');
 output1 = '<?xml version="1.0"?>\n<VTKFile type="Collection" version="0.1">\n  <Collection>\n';
 output2 = '';
@@ -5000,12 +4991,7 @@ function [] = export_vtk_binary(flname,tri,xy,sclrvr,ii,vrnm)
 %ii       : the output number in the series
 %vrnm     : the names of the scalar variables
 ndn = 'l'; %LittleEndian ('b' for BigEndian)
-tmp = pwd; 
-if tmp(1) == '/' || strcmp(computer,'PCWIN64')
- mslsh = '/';
-else
- mslsh = '\';
-end;
+mslsh = get_slash();
 fid = fopen(flname,'w');
 output1 = '<?xml version="1.0"?>\n<VTKFile type="Collection" version="0.1">\n  <Collection>\n';
 output2 = '';
@@ -5483,3 +5469,11 @@ vin(not(I)) = 0;
 vin = sort(vin,2);
 nN = sum(vin~=0,2);
 out = vin(:,size(vin,2):-1:size(vin,2)-max(nN)+1);
+
+function slash = get_slash()
+slash = pwd;
+if(sum(slash=='\'))
+    slash = '\';
+else
+    slash = '/';
+end;
